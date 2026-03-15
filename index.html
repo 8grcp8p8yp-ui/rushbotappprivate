@@ -2,270 +2,164 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hour Rush Analyzer</title>
-    
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUSH HOUR ANALYZER</title>
     <style>
-        :root {
-            --bg-dark: #060614;
-            --panel-bg: #0a0a1f;
-            --border-color: rgba(255, 255, 255, 0.1);
-            --text-main: #ffffff;
-            --text-dim: #aaccff;
-            --accent-purple: #4b0082; 
-            --column-heading: #6666cc; 
-            
-            --color-under: #ff3333;
-            --color-range: #00ddee;
-            --color-over: #00ff44;
-            --color-exact: #ffaa00;
-        }
-
-        body, html {
-            margin: 0; padding: 0; height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0d0d0d;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-        }
-
-        #map { flex-grow: 1; width: 100%; background: #060614; }
-        /* Удалена инверсия, так как карта теперь нативная темная */
-        .leaflet-control-attribution { display: none !important; }
-
-        .bottom-panel {
-            background-color: var(--panel-bg);
-            border-top: 1px solid var(--border-color);
-            border-radius: 20px 20px 0 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .prediction-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .controls-grid {
-            display: grid;
-            grid-template-columns: 1.2fr 1.3fr 1.2fr 1.4fr; 
-            gap: 12px;
-        }
-
-        .column { display: flex; flex-direction: column; gap: 8px; }
-        
-        h2 { 
-            font-size: 0.65rem; 
-            color: var(--column-heading); 
-            margin: 0; 
-            text-transform: uppercase; 
-            letter-spacing: 0.8px; 
-            font-weight: bold;
-            height: 14px;
-        }
-
-        .static-log-text {
-            font-size: 0.7rem;
-            color: #ffffff;
-            font-family: monospace;
-            height: 20px;
-            display: flex;
             align-items: center;
         }
 
-        .version-tag {
-            font-size: 0.6rem;
-            color: #aaaaaa;
-            font-family: monospace;
-            margin-top: 2px;
-            padding-left: 2px;
+        .container {
+            width: 90%;
+            max-width: 500px;
+            margin-top: 20px;
+            text-align: center;
         }
 
-        input[type="text"] {
-            width: 100%; padding: 12px; background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border-color); color: var(--text-main);
-            font-size: 0.85rem; border-radius: 8px; box-sizing: border-box;
-        }
-
-        .btn-action {
-            width: 100%;
-            padding: 15px 5px;
-            background: var(--accent-purple); 
-            color: #fff; 
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            cursor: pointer; 
-            text-transform: uppercase; 
-            font-size: 0.65rem; 
-            font-weight: 700; 
-            transition: all 0.3s ease;
-        }
-
-        .btn-analyze {
-            padding: 18px 5px; 
-            font-size: 0.75rem;
-            font-weight: 900;
-            background: #530094;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-action:hover, .btn-action:active {
-            background: #5d00a3;
-            box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
-        }
-
-        .log-box {
-            background: rgba(0,0,0,0.3); border: 1px solid var(--border-color);
-            padding: 8px; font-size: 0.65rem; color: #ffffff;
-            height: 75px; overflow-y: auto; font-family: monospace; border-radius: 8px;
-        }
-
-        .outcome-card {
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            gap: 4px; padding: 8px;
-            background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);
-            border-radius: 10px; opacity: 0.15; transition: 0.4s;
-        }
-
-        .outcome-card#card-under.active { opacity: 1; border-color: var(--color-under); background: rgba(255, 51, 51, 0.15); box-shadow: 0 0 15px rgba(255, 51, 51, 0.3); }
-        .outcome-card#card-range.active { opacity: 1; border-color: var(--color-range); background: rgba(0, 221, 238, 0.15); box-shadow: 0 0 15px rgba(0, 221, 238, 0.3); }
-        .outcome-card#card-over.active { opacity: 1; border-color: var(--color-over); background: rgba(0, 255, 68, 0.15); box-shadow: 0 0 15px rgba(0, 255, 68, 0.3); }
-        .outcome-card#card-exact.active { opacity: 1; border-color: var(--color-exact); background: rgba(255, 170, 0, 0.15); box-shadow: 0 0 15px rgba(255, 170, 0, 0.3); }
-        
-        .icon {
-            width: 28px; height: 28px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 0.9rem; color: white; line-height: 0;
-        }
-        .icon.under { background: var(--color-under); }
-        .icon.range { background: var(--color-range); }
-        .icon.over { background: var(--color-over); }
-        .icon.exact { background: var(--color-exact); }
-        
-        .outcome-label { font-size: 0.55rem; font-weight: bold; text-transform: uppercase; }
-
-        .header-tag {
-            position: absolute; top: 15px; left: 20px; z-index: 1000;
-            background: rgba(0,0,0,0.8); padding: 5px 15px;
-            border: 1px solid var(--border-color); font-size: 0.75rem;
-            color: var(--text-main); border-radius: 20px;
+        h1 {
+            color: #bc13fe;
+            text-shadow: 0 0 15px #bc13fe;
+            font-size: 24px;
+            margin-bottom: 20px;
             text-transform: uppercase;
         }
 
-        /* Стиль для неонового маркера */
-        .neon-marker {
-            background: #8a2be2;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 0 15px #8a2be2, 0 0 5px #ffffff;
+        .search-box {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            background: #000;
+            border: 1px solid #bc13fe;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            margin-bottom: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #bc13fe;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px #bc13fe;
+            transition: 0.3s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+            box-shadow: 0 0 5px #bc13fe;
+        }
+
+        #map-container {
+            margin-top: 20px;
+            width: 100%;
+            display: none; /* Скрыто до первого поиска */
+        }
+
+        iframe {
+            width: 100%;
+            height: 350px;
+            border: 1px solid #bc13fe;
+            border-radius: 12px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #555;
         }
     </style>
 </head>
 <body>
 
-    <div class="header-tag">HOUR RUSH ANALYZER</div>
-    <div id="map"></div>
-
-    <div class="bottom-panel">
-        <div class="outcomes-section">
-            <h2>ИСХОД:</h2>
-            <div class="prediction-row">
-                <div class="outcome-card" id="card-under"><div class="icon under">▼</div><div class="outcome-label">Under</div></div>
-                <div class="outcome-card" id="card-range"><div class="icon range">↔</div><div class="outcome-label">Range</div></div>
-                <div class="outcome-card" id="card-over"><div class="icon over">▲</div><div class="outcome-label">Over</div></div>
-                <div class="outcome-card" id="card-exact"><div class="icon exact">★</div><div class="outcome-label">Exact</div></div>
-            </div>
-        </div>
-
-        <div class="controls-grid">
-            <div class="column">
-                <h2>СТАТУС:</h2>
-                <div class="static-log-text">> Лог загружен</div>
-                <button class="btn-action" onclick="log('Лог обновлен успешно')">Загрузить лог</button>
-                <div class="version-tag">version: release 1.0.1</div>
-            </div>
-
-            <div class="column">
-                <div style="height: 38px;"></div> <button class="btn-action btn-analyze" onclick="doSearch()">Анализировать</button>
-            </div>
-
-            <div class="column">
-                <h2>ДАННЫЕ:</h2>
-                <input type="text" id="text-input" placeholder="Адрес...">
-            </div>
-
-            <div class="column">
-                <h2>СИСТЕМНЫЙ ЛОГ:</h2>
-                <div class="log-box" id="log-display">
-                    <div>> Лог загружен</div>
-                </div>
-            </div>
-        </div>
+<div class="container">
+    <h1>RUSH HOUR ANALYZER</h1>
+    
+    <div class="search-box">
+        <input type="text" id="camInput" placeholder="Введи название или адрес...">
+        <button onclick="findLocation()">ОПРЕДЕЛИТЬ МЕСТО</button>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <div id="map-container">
+        <iframe id="mapFrame" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>
+    </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+    <div class="footer">
+        X77 PRIVATE SYSTEM v1.0
+    </div>
+</div>
 
-        // Карта с темными тайлами CartoDB (без блокировок)
-        const map = L.map('map', {zoomControl: false}).setView([20, 0], 2);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(map);
+<script>
+    // База данных твоих локаций (координаты взяты по твоим фото)
+    const cameraDb = {
+        "I-5 SANTA ANA": "33.9912,-118.1501",
+        "I-710 LONG BEACH": "33.9715,-118.1755",
+        "FREEDOM SQUARE": "53.2045,6.5512",
+        "SOUTHERN RING": "53.2030,6.5645",
+        "LENIN-DRUZHBY": "56.6215,47.8540",
+        "GRAND AVE": "39.5482,-107.3255",
+        "PIATA ROMAN VODA": "46.9275,26.9458",
+        "SAINT BON SQUARE": "44.1105,9.8145"
+    };
 
-        let marker = null;
+    function findLocation() {
+        const query = document.getElementById('camInput').value.toUpperCase().trim();
+        const mapContainer = document.getElementById('map-container');
+        const mapFrame = document.getElementById('mapFrame');
+        
+        let targetCoords = "";
 
-        function log(msg) {
-            const display = document.getElementById('log-display');
-            display.innerHTML += `<div>> ${msg}</div>`;
-            display.scrollTop = display.scrollHeight;
+        // Ищем совпадение в базе
+        for (let key in cameraDb) {
+            if (query.includes(key)) {
+                targetCoords = cameraDb[key];
+                break;
+            }
         }
 
-        async function doSearch() {
-            const query = document.getElementById('text-input').value;
-            if (!query) { log("Введите адрес"); return; }
-            resetUI();
-            log(`Поиск: ${query}`);
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
-                const data = await response.json();
-                if (data.length > 0) {
-                    const {lat, lon} = data[0];
-                    if (marker) map.removeLayer(marker);
-                    
-                    // Создаем неоновый маркер вместо стандартного
-                    const neonIcon = L.divIcon({
-                        className: 'neon-marker',
-                        iconSize: [12, 12]
-                    });
-
-                    marker = L.marker([lat, lon], {icon: neonIcon}).addTo(map);
-                    map.flyTo([lat, lon], 16, {duration: 2});
-                    setTimeout(() => { calculateFinalResult(); }, 2100);
-                } else { log("Не найдено"); }
-            } catch (e) { log("Ошибка сети"); }
+        if (targetCoords) {
+            // Если нашли координаты в базе — используем их для точности
+            const embedUrl = `https://www.google.com/maps?q=${targetCoords}&z=16&output=embed`;
+            mapFrame.src = embedUrl;
+            mapContainer.style.display = "block";
+        } else if (query.length > 3) {
+            // Если в базе нет, пробуем искать просто по тексту через Google
+            const embedUrl = `https://www.google.com/maps?q=${encodeURIComponent(query)}&z=14&output=embed`;
+            mapFrame.src = embedUrl;
+            mapContainer.style.display = "block";
+        } else {
+            alert("Пожалуйста, введи корректное название камеры.");
         }
+    }
 
-        function calculateFinalResult() {
-            const options = ['card-under', 'card-over'];
-            const winner = options[Math.floor(Math.random() * options.length)];
-            document.getElementById(winner).classList.add('active');
-            log(`ГОТОВО: ${winner === 'card-under' ? 'UNDER' : 'OVER'}`);
+    // Позволяет нажимать Enter для поиска
+    document.getElementById('camInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            findLocation();
         }
+    });
+</script>
 
-        function resetUI() { document.querySelectorAll('.outcome-card').forEach(c => c.classList.remove('active')); }
-    </script>
 </body>
 </html>
