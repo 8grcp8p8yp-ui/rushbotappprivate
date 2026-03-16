@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hour Rush Analyzer</title>
+    <title>RUSH HOUR ANALYZER</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -35,7 +35,6 @@
         }
 
         #map { flex-grow: 1; width: 100%; background: #060614; }
-        /* Удалена инверсия, так как карта теперь нативная темная */
         .leaflet-control-attribution { display: none !important; }
 
         .bottom-panel {
@@ -161,7 +160,6 @@
             text-transform: uppercase;
         }
 
-        /* Стиль для неонового маркера */
         .neon-marker {
             background: #8a2be2;
             border: 2px solid #ffffff;
@@ -172,7 +170,7 @@
 </head>
 <body>
 
-    <div class="header-tag">HOUR RUSH ANALYZER</div>
+    <div class="header-tag">RUSH HOUR ANALYZER</div>
     <div id="map"></div>
 
     <div class="bottom-panel">
@@ -218,7 +216,20 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Карта с темными тайлами CartoDB (без блокировок)
+        const locationsDB = {
+            "shinjuku 1 tokyo": [35.6908, 139.7046],
+            "mezhdunarodnaya st russia": [55.7481, 37.5388],
+            "iuliu maniu blvd romania": [44.4355, 26.0500],
+            "saint bon square la spezia": [44.1104, 9.8143],
+            "southern ring road groningen": [53.2045, 6.5710],
+            "shinjuku kabukicho 2 tokyo": [35.6953, 139.7025],
+            "freedom square groningen": [53.2001, 6.5562],
+            "lenin-druzhby russia": [48.7845, 44.7770],
+            "piata roman voda romania": [46.9284, 26.9276],
+            "shinjuku 3 tokyo": [35.6905, 139.7046],
+            "grand ave glenwood springs": [39.5463, -107.3253]
+        };
+
         const map = L.map('map', {zoomControl: false}).setView([20, 0], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             subdomains: 'abcd',
@@ -233,29 +244,47 @@
             display.scrollTop = display.scrollHeight;
         }
 
+        function findLocalCoords(query) {
+            const q = query.toLowerCase().replace(/[.,]/g, '');
+            const qWords = q.split(/\s+/).filter(w => w.length > 2);
+            
+            for (const [name, coords] of Object.entries(locationsDB)) {
+                const nameWords = name.toLowerCase().split(/\s+/);
+                let matches = 0;
+                qWords.forEach(w => { if (nameWords.includes(w)) matches++; });
+                if (matches >= 2) return coords;
+            }
+            return null;
+        }
+
         async function doSearch() {
             const query = document.getElementById('text-input').value;
             if (!query) { log("Введите адрес"); return; }
             resetUI();
-            log(`Поиск: ${query}`);
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
-                const data = await response.json();
-                if (data.length > 0) {
-                    const {lat, lon} = data[0];
-                    if (marker) map.removeLayer(marker);
-                    
-                    // Создаем неоновый маркер вместо стандартного
-                    const neonIcon = L.divIcon({
-                        className: 'neon-marker',
-                        iconSize: [12, 12]
-                    });
+            log(`Анализ: ${query}`);
 
-                    marker = L.marker([lat, lon], {icon: neonIcon}).addTo(map);
-                    map.flyTo([lat, lon], 16, {duration: 2});
-                    setTimeout(() => { calculateFinalResult(); }, 2100);
-                } else { log("Не найдено"); }
-            } catch (e) { log("Ошибка сети"); }
+            const localCoords = findLocalCoords(query);
+
+            if (localCoords) {
+                log("Локация найдена в базе");
+                showOnMap(localCoords[0], localCoords[1]);
+            } else {
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+                    const data = await response.json();
+                    if (data.length > 0) {
+                        showOnMap(data[0].lat, data[0].lon);
+                    } else { log("Адрес не распознан"); }
+                } catch (e) { log("Ошибка сети"); }
+            }
+        }
+
+        function showOnMap(lat, lon) {
+            if (marker) map.removeLayer(marker);
+            const neonIcon = L.divIcon({ className: 'neon-marker', iconSize: [12, 12] });
+            marker = L.marker([lat, lon], {icon: neonIcon}).addTo(map);
+            map.flyTo([lat, lon], 16, {duration: 2});
+            setTimeout(() => { calculateFinalResult(); }, 2100);
         }
 
         function calculateFinalResult() {
