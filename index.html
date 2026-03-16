@@ -160,6 +160,33 @@
             text-transform: uppercase;
         }
 
+        /* --- СТИЛИ ДЛЯ ВЫБОРА ЯЗЫКА --- */
+        .lang-selector-btn {
+            position: absolute; top: 15px; right: 20px; z-index: 1002;
+            background: rgba(0,0,0,0.8); padding: 5px 10px;
+            border: 1px solid var(--border-color); font-size: 1rem;
+            color: var(--text-main); border-radius: 15px;
+            cursor: pointer; user-select: none;
+        }
+        
+        .lang-menu {
+            position: absolute; top: 50px; right: 20px; z-index: 1001;
+            background: rgba(10, 10, 31, 0.95); border: 1px solid var(--border-color);
+            border-radius: 10px; display: none; flex-direction: column; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .lang-menu.show { display: flex; }
+
+        .lang-option {
+            padding: 10px 15px; color: white; cursor: pointer; font-size: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center;
+            transition: background 0.2s;
+        }
+        
+        .lang-option:hover { background: rgba(255,255,255,0.1); }
+        .lang-option:last-child { border-bottom: none; }
+
         .neon-marker {
             background: #8a2be2;
             border: 2px solid #ffffff;
@@ -171,11 +198,21 @@
 <body>
 
     <div class="header-tag">RUSH HOUR ANALYZER</div>
+    
+    <div class="lang-selector-btn" id="lang-btn" onclick="toggleLangMenu()">🇷🇺</div>
+    <div class="lang-menu" id="lang-menu">
+        <div class="lang-option" onclick="setLanguage('ru', '🇷🇺')">🇷🇺 RU</div>
+        <div class="lang-option" onclick="setLanguage('en', '🇬🇧')">🇬🇧 EN</div>
+        <div class="lang-option" onclick="setLanguage('es', '🇪🇸')">🇪🇸 ES</div>
+        <div class="lang-option" onclick="setLanguage('pt', '🇵🇹')">🇵🇹 PT</div>
+        <div class="lang-option" onclick="setLanguage('hi', '🇮🇳')">🇮🇳 HI</div>
+    </div>
+
     <div id="map"></div>
 
     <div class="bottom-panel">
         <div class="outcomes-section">
-            <h2>ИСХОД:</h2>
+            <h2 id="ui-outcome">ИСХОД:</h2>
             <div class="prediction-row">
                 <div class="outcome-card" id="card-under"><div class="icon under">▼</div><div class="outcome-label">Under</div></div>
                 <div class="outcome-card" id="card-range"><div class="icon range">↔</div><div class="outcome-label">Range</div></div>
@@ -186,25 +223,26 @@
 
         <div class="controls-grid">
             <div class="column">
-                <h2>СТАТУС:</h2>
-                <div class="static-log-text">> Лог загружен</div>
-                <button class="btn-action" onclick="log('Лог обновлен успешно')">Загрузить лог</button>
-                <div class="version-tag">version: release 1.0.1</div>
+                <h2 id="ui-status">СТАТУС:</h2>
+                <div class="static-log-text">> <span id="ui-log-loaded">Лог загружен</span></div>
+                <button class="btn-action" id="ui-btn-load" onclick="actionLoadLog()">Загрузить лог</button>
+                <div class="version-tag">version: release 1.0.9</div>
             </div>
 
             <div class="column">
-                <div style="height: 38px;"></div> <button class="btn-action btn-analyze" onclick="doSearch()">Анализировать</button>
+                <div style="height: 38px;"></div> 
+                <button class="btn-action btn-analyze" id="ui-btn-analyze" onclick="doSearch()">Анализировать</button>
             </div>
 
             <div class="column">
-                <h2>ДАННЫЕ:</h2>
-                <input type="text" id="text-input" placeholder="Адрес...">
+                <h2 id="ui-data">ДАННЫЕ:</h2>
+                <input type="text" id="text-input" placeholder="">
             </div>
 
             <div class="column">
-                <h2>СИСТЕМНЫЙ ЛОГ:</h2>
+                <h2 id="ui-syslog">СИСТЕМНЫЙ ЛОГ:</h2>
                 <div class="log-box" id="log-display">
-                    <div>> Лог загружен</div>
+                    <div>> <span id="ui-syslog-loaded">Лог загружен</span></div>
                 </div>
             </div>
         </div>
@@ -215,6 +253,78 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+
+        // --- СЛОВАРЬ ПЕРЕВОДОВ ---
+        const dictionary = {
+            ru: {
+                outcome: "ИСХОД:", status: "СТАТУС:", data: "ДАННЫЕ:", syslog: "СИСТЕМНЫЙ ЛОГ:",
+                logLoaded: "Лог загружен", logUpdated: "Лог обновлен успешно", btnLoad: "Загрузить лог", btnAnalyze: "Анализировать",
+                errEmpty: "Введите адрес", logSearch: "Анализ:", logFoundDB: "Локация найдена в базе", 
+                logNotFound: "Адрес не распознан", errNet: "Ошибка сети", logDone: "ГОТОВО:"
+            },
+            en: {
+                outcome: "OUTCOME:", status: "STATUS:", data: "DATA:", syslog: "SYSTEM LOG:",
+                logLoaded: "Log loaded", logUpdated: "Log updated successfully", btnLoad: "Load log", btnAnalyze: "Analyze",
+                errEmpty: "Enter address", logSearch: "Analysis:", logFoundDB: "Location found in DB", 
+                logNotFound: "Address not recognized", errNet: "Network error", logDone: "DONE:"
+            },
+            es: {
+                outcome: "RESULTADO:", status: "ESTADO:", data: "DATOS:", syslog: "REGISTRO DEL SISTEMA:",
+                logLoaded: "Registro cargado", logUpdated: "Registro actualizado", btnLoad: "Cargar registro", btnAnalyze: "Analizar",
+                errEmpty: "Ingrese dirección", logSearch: "Análisis:", logFoundDB: "Ubicación en BD", 
+                logNotFound: "Dirección no reconocida", errNet: "Error de red", logDone: "HECHO:"
+            },
+            pt: {
+                outcome: "RESULTADO:", status: "STATUS:", data: "DADOS:", syslog: "LOG DO SISTEMA:",
+                logLoaded: "Log carregado", logUpdated: "Log atualizado com sucesso", btnLoad: "Carregar log", btnAnalyze: "Analisar",
+                errEmpty: "Digite o endereço", logSearch: "Análise:", logFoundDB: "Localização no BD", 
+                logNotFound: "Endereço não reconhecido", errNet: "Erro de rede", logDone: "FEITO:"
+            },
+            hi: {
+                outcome: "परिणाम:", status: "स्थिति:", data: "डेटा:", syslog: "सिस्टम लॉग:",
+                logLoaded: "लॉग लोड हो गया", logUpdated: "लॉग अपडेट हो गया", btnLoad: "लॉग लोड करें", btnAnalyze: "विश्लेषण करें",
+                errEmpty: "पता दर्ज करें", logSearch: "विश्लेषण:", logFoundDB: "DB में स्थान मिला", 
+                logNotFound: "पता पहचाना नहीं गया", errNet: "नेटवर्क त्रुटि", logDone: "हो गया:"
+            }
+        };
+
+        let currentLang = 'ru';
+
+        // Функция переключения языка
+        function setLanguage(lang, flag) {
+            currentLang = lang;
+            document.getElementById('lang-btn').innerText = flag;
+            document.getElementById('lang-menu').classList.remove('show');
+
+            const t = dictionary[lang];
+            
+            // Обновляем текст интерфейса
+            document.getElementById('ui-outcome').innerText = t.outcome;
+            document.getElementById('ui-status').innerText = t.status;
+            document.getElementById('ui-data').innerText = t.data;
+            document.getElementById('ui-syslog').innerText = t.syslog;
+            document.getElementById('ui-log-loaded').innerText = t.logLoaded;
+            document.getElementById('ui-syslog-loaded').innerText = t.logLoaded;
+            document.getElementById('ui-btn-load').innerText = t.btnLoad;
+            document.getElementById('ui-btn-analyze').innerText = t.btnAnalyze;
+        }
+
+        function toggleLangMenu() {
+            document.getElementById('lang-menu').classList.toggle('show');
+        }
+
+        // Закрытие меню при клике в любое другое место
+        window.onclick = function(event) {
+            if (!event.target.matches('.lang-selector-btn')) {
+                const dropdowns = document.getElementsByClassName("lang-menu");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    let openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
 
         const locationsDB = {
             "shinjuku 1 tokyo": [35.6908, 139.7046],
@@ -244,6 +354,10 @@
             display.scrollTop = display.scrollHeight;
         }
 
+        function actionLoadLog() {
+            log(dictionary[currentLang].logUpdated);
+        }
+
         function findLocalCoords(query) {
             const q = query.toLowerCase().replace(/[.,]/g, '');
             const qWords = q.split(/\s+/).filter(w => w.length > 2);
@@ -258,15 +372,16 @@
         }
 
         async function doSearch() {
+            const t = dictionary[currentLang]; // Берем переводы для логов
             const query = document.getElementById('text-input').value;
-            if (!query) { log("Введите адрес"); return; }
+            if (!query) { log(t.errEmpty); return; }
             resetUI();
-            log(`Анализ: ${query}`);
+            log(`${t.logSearch} ${query}`);
 
             const localCoords = findLocalCoords(query);
 
             if (localCoords) {
-                log("Локация найдена в базе");
+                log(t.logFoundDB);
                 showOnMap(localCoords[0], localCoords[1]);
             } else {
                 try {
@@ -274,8 +389,8 @@
                     const data = await response.json();
                     if (data.length > 0) {
                         showOnMap(data[0].lat, data[0].lon);
-                    } else { log("Адрес не распознан"); }
-                } catch (e) { log("Ошибка сети"); }
+                    } else { log(t.logNotFound); }
+                } catch (e) { log(t.errNet); }
             }
         }
 
@@ -288,10 +403,11 @@
         }
 
         function calculateFinalResult() {
+            const t = dictionary[currentLang];
             const options = ['card-under', 'card-over'];
             const winner = options[Math.floor(Math.random() * options.length)];
             document.getElementById(winner).classList.add('active');
-            log(`ГОТОВО: ${winner === 'card-under' ? 'UNDER' : 'OVER'}`);
+            log(`${t.logDone} ${winner === 'card-under' ? 'UNDER' : 'OVER'}`);
         }
 
         function resetUI() { document.querySelectorAll('.outcome-card').forEach(c => c.classList.remove('active')); }
