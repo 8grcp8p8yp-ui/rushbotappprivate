@@ -2,10 +2,11 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>RUSH HOUR ANALYZER</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
     <style>
         :root {
             --bg-dark: #060614;
@@ -23,7 +24,8 @@
         }
 
         body, html {
-            margin: 0; padding: 0; height: 100vh;
+            margin: 0; padding: 0; 
+            height: 100dvh; /* Динамическая высота для iPhone */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
@@ -32,238 +34,131 @@
             overflow: hidden;
         }
 
-        /* Container for 3D Globe */
-        #globeViz { flex-grow: 1; width: 100%; background: #060614; }
-        
-        .leaflet-control-attribution { display: none !important; }
+        /* Контейнер для планеты - теперь он занимает меньше места, чтобы влезла панель */
+        #globeViz { 
+            flex: 1; 
+            width: 100%; 
+            background: #000; 
+            max-height: 45%; /* Ограничение, чтобы панель снизу всегда была видна */
+        }
 
         .bottom-panel {
             background-color: var(--panel-bg);
             border-top: 1px solid var(--border-color);
             border-radius: 20px 20px 0 0;
-            padding: 15px;
+            padding: 15px 15px calc(15px + env(safe-area-inset-bottom)); /* Учитываем "челку" снизу */
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            z-index: 10; /* Ensure it is above the globe viz on resize if needed, although fixed overlay will be above */
+            gap: 12px;
+            z-index: 10;
         }
 
-        /* Updated to 2 columns with 2 rows for result cards */
         .prediction-row {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             grid-template-rows: repeat(2, 1fr);
             gap: 10px;
-            margin-top: 8px;
         }
 
-        /* Updated controls grid columns as one column is removed */
         .controls-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 columns now */
-            gap: 12px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
         }
 
-        .column { display: flex; flex-direction: column; gap: 8px; }
+        .column { display: flex; flex-direction: column; gap: 5px; }
         
         h2 { 
-            font-size: 0.65rem; 
+            font-size: 0.6rem; 
             color: var(--column-heading); 
             margin: 0; 
             text-transform: uppercase; 
-            letter-spacing: 0.8px; 
             font-weight: bold;
-            height: 14px;
         }
 
-        .static-log-text {
-            font-size: 0.7rem;
-            color: #ffffff;
-            font-family: monospace;
-            height: 20px;
-            display: flex;
-            align-items: center;
-        }
-
-        .version-tag {
-            font-size: 0.6rem;
-            color: #aaaaaa;
-            font-family: monospace;
-            margin-top: 2px;
-            padding-left: 2px;
-        }
-
-        input[type="text"] {
-            width: 100%; padding: 12px; background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border-color); color: var(--text-main);
-            font-size: 0.85rem; border-radius: 8px; box-sizing: border-box;
-        }
+        .static-log-text { font-size: 0.65rem; color: #ffffff; font-family: monospace; }
+        .version-tag { font-size: 0.55rem; color: #666; font-family: monospace; }
 
         .btn-action {
             width: 100%;
-            padding: 15px 5px;
+            padding: 12px 5px;
             background: var(--accent-purple); 
             color: #fff; 
             border-radius: 10px;
             border: 1px solid rgba(255,255,255,0.1);
-            cursor: pointer; 
             text-transform: uppercase; 
-            font-size: 0.65rem; 
+            font-size: 0.6rem; 
             font-weight: 700; 
-            transition: all 0.3s ease;
         }
 
         .btn-analyze {
-            padding: 18px 5px; 
-            font-size: 0.75rem;
-            font-weight: 900;
+            padding: 15px 5px; 
+            font-size: 0.7rem;
             background: #530094;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-action:hover, .btn-action:active {
-            background: #5d00a3;
-            box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
         }
 
         .log-box {
             background: rgba(0,0,0,0.3); border: 1px solid var(--border-color);
-            padding: 8px; font-size: 0.65rem; color: #ffffff;
-            height: 75px; overflow-y: auto; font-family: monospace; border-radius: 8px;
+            padding: 5px; font-size: 0.6rem; color: #ffffff;
+            height: 60px; overflow-y: auto; font-family: monospace; border-radius: 8px;
         }
 
         .outcome-card {
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            gap: 4px; padding: 8px;
-            background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);
-            border-radius: 10px; opacity: 0.15; transition: 0.4s;
+            padding: 6px; background: rgba(255, 255, 255, 0.02); 
+            border: 1px solid var(--border-color); border-radius: 10px; opacity: 0.2;
         }
 
-        .outcome-card#card-under.active { opacity: 1; border-color: var(--color-under); background: rgba(255, 51, 51, 0.15); box-shadow: 0 0 15px rgba(255, 51, 51, 0.3); }
-        .outcome-card#card-range.active { opacity: 1; border-color: var(--color-range); background: rgba(0, 221, 238, 0.15); box-shadow: 0 0 15px rgba(0, 221, 238, 0.3); }
-        .outcome-card#card-over.active { opacity: 1; border-color: var(--color-over); background: rgba(0, 255, 68, 0.15); box-shadow: 0 0 15px rgba(0, 255, 68, 0.3); }
-        .outcome-card#card-exact.active { opacity: 1; border-color: var(--color-exact); background: rgba(255, 170, 0, 0.15); box-shadow: 0 0 15px rgba(255, 170, 0, 0.3); }
+        .outcome-card.active { opacity: 1; }
+        #card-under.active { border-color: var(--color-under); background: rgba(255, 51, 51, 0.15); }
+        #card-range.active { border-color: var(--color-range); background: rgba(0, 221, 238, 0.15); }
+        #card-over.active { border-color: var(--color-over); background: rgba(0, 255, 68, 0.15); }
+        #card-exact.active { border-color: var(--color-exact); background: rgba(255, 170, 0, 0.15); }
         
-        .icon {
-            width: 28px; height: 28px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 0.9rem; color: white; line-height: 0;
-        }
+        .icon { width: 24px; height: 24px; border-radius: 50%; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; }
         .icon.under { background: var(--color-under); }
         .icon.range { background: var(--color-range); }
         .icon.over { background: var(--color-over); }
         .icon.exact { background: var(--color-exact); }
-        
-        .outcome-label { font-size: 0.55rem; font-weight: bold; text-transform: uppercase; }
+        .outcome-label { font-size: 0.5rem; font-weight: bold; margin-top: 2px; }
 
         .header-tag {
             position: absolute; top: 15px; left: 20px; z-index: 1000;
-            background: rgba(0,0,0,0.8); padding: 5px 15px;
-            border: 1px solid var(--border-color); font-size: 0.75rem;
-            color: var(--text-main); border-radius: 20px;
-            text-transform: uppercase;
+            background: rgba(0,0,0,0.8); padding: 5px 12px;
+            border: 1px solid var(--border-color); font-size: 0.65rem;
+            color: white; border-radius: 20px;
         }
 
-        /* --- STYLES FOR LANGUAGE SELECTION --- */
-        .lang-selector-btn {
-            position: absolute; top: 15px; right: 20px; z-index: 1002;
-            background: rgba(0,0,0,0.8); padding: 5px 10px;
-            border: 1px solid var(--border-color); font-size: 1rem;
-            color: var(--text-main); border-radius: 15px;
-            cursor: pointer; user-select: none;
-        }
-        
-        .lang-menu {
-            position: absolute; top: 50px; right: 20px; z-index: 1001;
-            background: rgba(10, 10, 31, 0.95); border: 1px solid var(--border-color);
-            border-radius: 10px; display: none; flex-direction: column; overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .lang-menu.show { display: flex; }
-
-        .lang-option {
-            padding: 10px 15px; color: white; cursor: pointer; font-size: 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center;
-            transition: background 0.2s;
-        }
-        
-        .lang-option:hover { background: rgba(255,255,255,0.1); }
-        .lang-option:last-child { border-bottom: none; }
-
-        /* Updated styling for Globe.gl marker */
-        .neon-marker-point {
-            background: #8a2be2;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 0 15px #8a2be2, 0 0 5px #ffffff;
-        }
-
-        /* Loading overlay styles */
+        /* Loading Overlay */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: none; /* hidden by default */
-            justify-content: center; align-items: center; flex-direction: column;
+            background: rgba(0, 0, 0, 0.9);
+            display: none; justify-content: center; align-items: center; flex-direction: column;
             z-index: 9999;
         }
-        .loading-text {
-            color: white; font-size: 1.5rem; text-transform: uppercase;
-            letter-spacing: 2px; margin-top: 20px; font-weight: bold; font-family: monospace;
-        }
-        /* CSS car animation */
-        .car-loader {
-            width: 150px; height: 75px;
-            display: flex; justify-content: center; align-items: center;
-            position: relative;
-        }
-        .car-body {
-            width: 100px; height: 35px; background: white; border-radius: 5px 25px 5px 5px;
-            position: absolute; top: 20px;
-        }
-        .car-cabin {
-            width: 50px; height: 25px; background: white; border-radius: 20px 20px 0 0;
-            position: absolute; top: 0px; left: 15px;
-        }
-        .wheel {
-            width: 20px; height: 20px; background: black; border-radius: 50%;
-            position: absolute; bottom: -5px;
-            border: 2px solid grey; box-sizing: border-box;
-            animation: spin 1s linear infinite;
-        }
-        .wheel::after {
-            content: ''; width: 6px; height: 6px; background: white; border-radius: 50%;
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        }
-        .wheel-front { right: 20px; }
-        .wheel-back { left: 20px; }
+        .loading-text { color: white; font-size: 1.2rem; margin-top: 20px; font-family: monospace; }
+        
+        /* Car Animation */
+        .car-loader { width: 100px; height: 50px; position: relative; }
+        .car-body { width: 80px; height: 25px; background: white; border-radius: 5px 20px 5px 5px; position: absolute; top: 15px; }
+        .wheel { width: 16px; height: 16px; background: #333; border-radius: 50%; position: absolute; bottom: 0; border: 2px solid white; animation: spin 0.5s linear infinite; }
+        .wheel-back { left: 10px; } .wheel-front { right: 15px; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes spin-back { 100% { transform: rotate(-360deg); } }
     </style>
 </head>
 <body>
 
     <div class="header-tag">RUSH HOUR ANALYZER</div>
     
-    <div class="lang-selector-btn" id="lang-btn" onclick="toggleLangMenu()">🇷🇺</div>
-    <div class="lang-menu" id="lang-menu">
-        <div class="lang-option" onclick="setLanguage('ru', '🇷🇺')">🇷🇺 RU</div>
-        <div class="lang-option" onclick="setLanguage('en', '🇬🇧')">🇬🇧 EN</div>
-        <div class="lang-option" onclick="setLanguage('es', '🇪🇸')">🇪🇸 ES</div>
-        <div class="lang-option" onclick="setLanguage('pt', '🇵🇹')">🇵🇹 PT</div>
-        <div class="lang-option" onclick="setLanguage('hi', '🇮🇳')">🇮🇳 HI</div>
-    </div>
-
     <div id="globeViz"></div>
 
     <div id="loading-overlay" class="loading-overlay">
         <div class="car-loader">
             <div class="car-body"></div>
-            <div class="car-cabin"></div>
             <div class="wheel wheel-back"></div>
             <div class="wheel wheel-front"></div>
         </div>
-        <div class="loading-text">ЗАГРУЗКА</div>
+        <div class="loading-text">ЗАГРУЗКА...</div>
     </div>
 
     <div class="bottom-panel">
@@ -280,223 +175,81 @@
         <div class="controls-grid">
             <div class="column">
                 <h2 id="ui-status">СТАТУС:</h2>
-                <div class="static-log-text">> <span id="ui-log-loaded">Лог загружен</span></div>
-                <button class="btn-action" id="ui-btn-load" onclick="actionLoadLog()">Загрузить лог</button>
-                <div class="version-tag">version: release 1.0.9</div>
+                <div class="static-log-text">> <span id="ui-log-loaded">OK</span></div>
+                <button class="btn-action" onclick="actionLoadLog()">LOG</button>
             </div>
-
             <div class="column">
-                <div style="height: 38px;"></div> 
-                <button class="btn-action btn-analyze" id="ui-btn-analyze" onclick="triggerAnalysis()">Анализировать</button>
+                <div style="height: 15px;"></div> 
+                <button class="btn-action btn-analyze" onclick="triggerAnalysis()">АНАЛИЗ</button>
             </div>
-
             <div class="column">
-                <h2 id="ui-syslog">СИСТЕМНЫЙ ЛОГ:</h2>
-                <div class="log-box" id="log-display">
-                    <div>> <span id="ui-syslog-loaded">Лог загружен</span></div>
-                </div>
+                <h2 id="ui-syslog">LOG:</h2>
+                <div class="log-box" id="log-display"></div>
             </div>
         </div>
+        <div class="version-tag">release 1.0.9 | @rush_hour_x77_bot</div>
     </div>
 
     <script src="//unpkg.com/globe.gl"></script>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // --- DICTIONARY ---
-        const dictionary = {
-            ru: {
-                outcome: "ИСХОД:", status: "СТАТУС:", syslog: "СИСТЕМНЫЙ ЛОГ:",
-                logLoaded: "Лог загружен", logUpdated: "Лог обновлен успешно", btnLoad: "Загрузить лог", btnAnalyze: "Анализировать",
-                errNet: "Ошибка сети", logDone: "ГОТОВО:"
-            },
-            en: {
-                outcome: "OUTCOME:", status: "STATUS:", syslog: "SYSTEM LOG:",
-                logLoaded: "Log loaded", logUpdated: "Log updated successfully", btnLoad: "Load log", btnAnalyze: "Analyze",
-                errNet: "Network error", logDone: "DONE:"
-            },
-            es: {
-                outcome: "RESULTADO:", status: "ESTADO:", syslog: "REGISTRO DEL SISTEMA:",
-                logLoaded: "Registro cargado", logUpdated: "Registro actualizado", btnLoad: "Cargar registro", btnAnalyze: "Analizar",
-                errNet: "Error de red", logDone: "HECHO:"
-            },
-            pt: {
-                outcome: "RESULTADO:", status: "STATUS:", syslog: "LOG DO SISTEMA:",
-                logLoaded: "Log carregado", logUpdated: "Log atualizado com sucesso", btnLoad: "Carregar log", btnAnalyze: "Analisar",
-                errNet: "Erro de rede", logDone: "FEITO:"
-            },
-            hi: {
-                outcome: "परिणाम:", status: "स्थिति:", syslog: "सिस्टम लॉग:",
-                logLoaded: "लॉग लोड हो गया", logUpdated: "लॉग अपडेट हो गया", btnLoad: "लॉग लोड करें", btnAnalyze: "विश्लेषण करें",
-                errNet: "नेटवर्क त्रुटि", logDone: "हो गया:"
-            }
-        };
-
-        let currentLang = 'ru';
-
-        // Language toggle function
-        function setLanguage(lang, flag) {
-            currentLang = lang;
-            document.getElementById('lang-btn').innerText = flag;
-            document.getElementById('lang-menu').classList.remove('show');
-
-            const t = dictionary[lang];
-            
-            // UI text update
-            document.getElementById('ui-outcome').innerText = t.outcome;
-            document.getElementById('ui-status').innerText = t.status;
-            // Removed input text data reference
-            document.getElementById('ui-syslog').innerText = t.syslog;
-            document.getElementById('ui-log-loaded').innerText = t.logLoaded;
-            document.getElementById('ui-syslog-loaded').innerText = t.logLoaded;
-            document.getElementById('ui-btn-load').innerText = t.btnLoad;
-            document.getElementById('ui-btn-analyze').innerText = t.btnAnalyze;
-        }
-
-        function toggleLangMenu() {
-            document.getElementById('lang-menu').classList.toggle('show');
-        }
-
-        // Close menu on outside click
-        window.onclick = function(event) {
-            if (!event.target.matches('.lang-selector-btn')) {
-                const dropdowns = document.getElementsByClassName("lang-menu");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    let openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
-            }
-        }
-
-        const locationsDB = {
-            "shinjuku 1 tokyo": [35.6908, 139.7046],
-            "mezhdunarodnaya st russia": [55.7481, 37.5388],
-            "iuliu maniu blvd romania": [44.4355, 26.0500],
-            "saint bon square la spezia": [44.1104, 9.8143],
-            "southern ring road groningen": [53.2045, 6.5710],
-            "shinjuku kabukicho 2 tokyo": [35.6953, 139.7025],
-            "freedom square groningen": [53.2001, 6.5562],
-            "lenin-druzhby russia": [48.7845, 44.7770],
-            "piata roman voda romania": [46.9284, 26.9276],
-            "shinjuku 3 tokyo": [35.6905, 139.7046],
-            "grand ave glenwood springs": [39.5463, -107.3253]
-        };
-
-        // --- GLOBE INITIALIZATION ---
-        // Placeholder textures, replace with your own or use free textures online e.g from NASA
-        // Using unpkg urls for working textures right out of the box.
-        const dayTexture = '//unpkg.com/three-globe/example/img/earth-day.jpg';
-        const nightTexture = '//unpkg.com/three-globe/example/img/earth-night.jpg';
-        const bumpMap = '//unpkg.com/three-globe/example/img/earth-topology.png';
-
+        // Инициализация глобуса (ТЕМНАЯ ТЕМА)
         const world = Globe()(document.getElementById('globeViz'))
-            .globeImageUrl(dayTexture) // Initial day texture
-            .bumpImageUrl(bumpMap)
-            .backgroundColor('#060614') // Matching bg color
+            .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+            .backgroundColor('#060614')
             .showAtmosphere(true)
-            .atmosphereColor('#4b0082') // matching accent purple
+            .atmosphereColor('#4b0082')
             .atmosphereDaylightAlpha(0.1);
 
-        // --- Slow self-rotation on launch ---
+        // Настройка вращения (ВСЕГДА МЕДЛЕННО)
         world.controls().autoRotate = true;
-        world.controls().autoRotateSpeed = 0.5; // slow speed
+        world.controls().autoRotateSpeed = 0.8;
+        world.controls().enableZoom = false; // Отключаем зум, чтобы не мешал скроллу на мобиле
 
-        // Handle resizing correctly for Globe.gl
+        function triggerAnalysis() {
+            document.querySelectorAll('.outcome-card').forEach(c => c.classList.remove('active'));
+            
+            if (Math.random() < 0.6) {
+                const overlay = document.getElementById('loading-overlay');
+                overlay.style.display = 'flex';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    finishAnalysis();
+                }, 4000);
+            } else {
+                finishAnalysis();
+            }
+        }
+
+        function finishAnalysis() {
+            const options = ['card-under', 'card-over', 'card-range', 'card-exact'];
+            const winner = options[Math.floor(Math.random() * options.length)];
+            document.getElementById(winner).classList.add('active');
+            
+            // Прыжок камеры к случайной точке при результате
+            const coords = { lat: (Math.random()-0.5)*120, lng: (Math.random()-0.5)*360 };
+            world.pointOfView({ ...coords, alt: 2 }, 2000);
+            
+            const logBox = document.getElementById('log-display');
+            logBox.innerHTML += `<div>> DONE: ${winner.split('-')[1].toUpperCase()}</div>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function actionLoadLog() {
+            document.getElementById('log-display').innerHTML += `<div>> System Check... OK</div>`;
+        }
+
+        // Подгонка размера под экран
         window.addEventListener('resize', () => {
             world.width(window.innerWidth);
             world.height(document.getElementById('globeViz').offsetHeight);
         });
-
-        // and call initially to setup correct size
         world.width(window.innerWidth);
         world.height(document.getElementById('globeViz').offsetHeight);
-
-        // Marker/point styling logic
-        const gData = []; // To store point data for globe
-
-        function log(msg) {
-            const display = document.getElementById('log-display');
-            display.innerHTML += `<div>> ${msg}</div>`;
-            display.scrollTop = display.scrollHeight;
-        }
-
-        function actionLoadLog() {
-            log(dictionary[currentLang].logUpdated);
-        }
-
-        // New trigger function for analysis with chance and loading screen
-        function triggerAnalysis() {
-            resetUI();
-            log(`${dictionary[currentLang].btnAnalyze}...`);
-
-            // Pick a random location from DB for demonstration, as search is gone
-            const keys = Object.keys(locationsDB);
-            const randomKey = keys[Math.floor(Math.random() * keys.length)];
-            const localCoords = locationsDB[randomKey];
-
-            // Chance logic: Math.random() < 0.6 is 60% chance
-            if (Math.random() < 0.6) {
-                // Show loading screen
-                const overlay = document.getElementById('loading-overlay');
-                overlay.style.display = 'flex'; // show centered overlay
-
-                // Timeout for loading effect (e.g. 6 seconds)
-                setTimeout(() => {
-                    overlay.style.display = 'none'; // hide loading overlay
-                    showOnGlobe(localCoords[0], localCoords[1], true); // Fly and show point, then result
-                }, 6000); 
-            } else {
-                // Chance didn't fall out, display result immediately, just fly to planet point.
-                showOnGlobe(localCoords[0], localCoords[1], false); // Fly to point without loading delay and then show result after camera
-            }
-        }
-
-        // Updated function to show point and move camera on Globe
-        function showOnGlobe(lat, lon, afterLoading) {
-            const latNum = parseFloat(lat);
-            const lonNum = parseFloat(lon);
-
-            // 1. Add neon marker point to globe
-            // Use neon marker color for styling, e.g purple from CSS
-            const neonColor = '#8a2be2';
-            world.pointsData([{ lat: latNum, lng: lonNum, size: 0.1, color: neonColor }]);
-            
-            // 2. Camera fly animation
-            // Stop auto-rotation temporarily during camera move
-            world.controls().autoRotate = false;
-            
-            // Altitude 1.5 is moderate zoom to show point and context, duration 2.5s for cool fly effect
-            world.pointOfView({ lat: latNum, lng: lonNum, alt: 1.5 }, 2500); 
-            
-            // Set timeout for final result logic, after fly animation ends
-            setTimeout(() => {
-                calculateFinalResult();
-                // Optionally re-enable auto-rotation, maybe with slight shift to showcase point context?
-                // Or just keep it off for focused view on result. Keep it off for focus.
-            }, 2600); // slightly more than animation duration
-        }
-
-        // Calculate and show final result card
-        function calculateFinalResult() {
-            const t = dictionary[currentLang];
-            // Random chance for result, Under or Over
-            const options = ['card-under', 'card-over'];
-            const winner = options[Math.floor(Math.random() * options.length)];
-            // Activate card
-            document.getElementById(winner).classList.add('active');
-            log(`${t.logDone} ${winner === 'card-under' ? 'UNDER' : 'OVER'}`);
-        }
-
-        // Helper to clear UI state
-        function resetUI() { 
-            // Reset active result cards
-            document.querySelectorAll('.outcome-card').forEach(c => c.classList.remove('active')); 
-            // Clear points from globe
-            world.pointsData([]);
-        }
     </script>
 </body>
 </html>
