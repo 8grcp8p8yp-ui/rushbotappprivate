@@ -13,10 +13,8 @@
             --panel-bg: #0a0a1f;
             --border-color: rgba(255, 255, 255, 0.1);
             --text-main: #ffffff;
-            --text-dim: #aaccff;
             --accent-purple: #4b0082; 
             --column-heading: #6666cc; 
-            
             --color-under: #ff3333;
             --color-range: #00ddee;
             --color-over: #00ff44;
@@ -25,7 +23,7 @@
 
         body, html {
             margin: 0; padding: 0; 
-            height: 100dvh; /* Динамическая высота для iPhone */
+            height: 100dvh;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
@@ -34,160 +32,188 @@
             overflow: hidden;
         }
 
-        /* Контейнер для планеты - теперь он занимает меньше места, чтобы влезла панель */
+        /* Планета еще выше и компактнее */
         #globeViz { 
             flex: 1; 
             width: 100%; 
             background: #000; 
-            max-height: 45%; /* Ограничение, чтобы панель снизу всегда была видна */
+            max-height: 40%; 
+            margin-top: -20px; /* Сдвигаем еще выше */
         }
 
         .bottom-panel {
             background-color: var(--panel-bg);
             border-top: 1px solid var(--border-color);
-            border-radius: 20px 20px 0 0;
-            padding: 15px 15px calc(15px + env(safe-area-inset-bottom)); /* Учитываем "челку" снизу */
+            border-radius: 25px 25px 0 0;
+            padding: 20px 15px calc(20px + env(safe-area-inset-bottom));
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
             z-index: 10;
         }
 
         .prediction-row {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(2, 1fr);
             gap: 10px;
         }
 
+        /* Выравнивание кнопок АНАЛИЗ и LOG */
         .controls-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            align-items: end; /* Выравнивает всё по нижней линии */
         }
 
-        .column { display: flex; flex-direction: column; gap: 5px; }
+        .column { display: flex; flex-direction: column; gap: 8px; }
         
         h2 { 
-            font-size: 0.6rem; 
+            font-size: 0.65rem; 
             color: var(--column-heading); 
             margin: 0; 
             text-transform: uppercase; 
             font-weight: bold;
         }
 
-        .static-log-text { font-size: 0.65rem; color: #ffffff; font-family: monospace; }
-        .version-tag { font-size: 0.55rem; color: #666; font-family: monospace; }
+        .static-log-text { font-size: 0.7rem; color: #fff; font-family: monospace; }
+        .version-tag { font-size: 0.6rem; color: #555; font-family: monospace; margin-top: 5px; }
 
         .btn-action {
             width: 100%;
-            padding: 12px 5px;
+            padding: 14px 5px;
             background: var(--accent-purple); 
             color: #fff; 
-            border-radius: 10px;
             border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
             text-transform: uppercase; 
-            font-size: 0.6rem; 
-            font-weight: 700; 
+            font-size: 0.65rem; 
+            font-weight: 800;
+            cursor: pointer;
         }
 
+        /* Сдвигаем кнопку АНАЛИЗ чуть ниже для идеального выравнивания с LOG */
         .btn-analyze {
-            padding: 15px 5px; 
-            font-size: 0.7rem;
             background: #530094;
+            margin-bottom: 0px; 
+            padding: 16px 5px;
         }
 
         .log-box {
-            background: rgba(0,0,0,0.3); border: 1px solid var(--border-color);
-            padding: 5px; font-size: 0.6rem; color: #ffffff;
-            height: 60px; overflow-y: auto; font-family: monospace; border-radius: 8px;
+            background: rgba(0,0,0,0.4); border: 1px solid var(--border-color);
+            padding: 8px; font-size: 0.65rem; color: #00ff44;
+            height: 65px; overflow-y: auto; font-family: monospace; border-radius: 10px;
         }
 
         .outcome-card {
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            padding: 6px; background: rgba(255, 255, 255, 0.02); 
-            border: 1px solid var(--border-color); border-radius: 10px; opacity: 0.2;
+            padding: 10px; background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid var(--border-color); border-radius: 12px; opacity: 0.2;
+            transition: 0.3s;
         }
 
         .outcome-card.active { opacity: 1; }
-        #card-under.active { border-color: var(--color-under); background: rgba(255, 51, 51, 0.15); }
-        #card-range.active { border-color: var(--color-range); background: rgba(0, 221, 238, 0.15); }
-        #card-over.active { border-color: var(--color-over); background: rgba(0, 255, 68, 0.15); }
-        #card-exact.active { border-color: var(--color-exact); background: rgba(255, 170, 0, 0.15); }
+        #card-under.active { border-color: var(--color-under); box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); }
+        #card-range.active { border-color: var(--color-range); box-shadow: 0 0 15px rgba(0, 221, 238, 0.2); }
+        #card-over.active { border-color: var(--color-over); box-shadow: 0 0 15px rgba(0, 255, 68, 0.2); }
+        #card-exact.active { border-color: var(--color-exact); box-shadow: 0 0 15px rgba(255, 170, 0, 0.2); }
         
-        .icon { width: 24px; height: 24px; border-radius: 50%; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; }
+        .icon { width: 26px; height: 26px; border-radius: 50%; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
         .icon.under { background: var(--color-under); }
         .icon.range { background: var(--color-range); }
         .icon.over { background: var(--color-over); }
         .icon.exact { background: var(--color-exact); }
-        .outcome-label { font-size: 0.5rem; font-weight: bold; margin-top: 2px; }
+        .outcome-label { font-size: 0.55rem; font-weight: bold; margin-top: 4px; color: #aaa; }
 
         .header-tag {
             position: absolute; top: 15px; left: 20px; z-index: 1000;
-            background: rgba(0,0,0,0.8); padding: 5px 12px;
+            background: rgba(0,0,0,0.7); padding: 6px 14px;
             border: 1px solid var(--border-color); font-size: 0.65rem;
-            color: white; border-radius: 20px;
+            color: white; border-radius: 20px; font-weight: bold;
         }
 
-        /* Loading Overlay */
+        /* Выбор языка флагами */
+        .lang-selector {
+            position: absolute; top: 15px; right: 20px; z-index: 1002;
+        }
+        .lang-btn {
+            background: rgba(0,0,0,0.8); border: 1px solid var(--border-color);
+            border-radius: 50%; width: 35px; height: 35px; display: flex;
+            align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer;
+        }
+        .lang-menu {
+            position: absolute; top: 45px; right: 0; background: var(--panel-bg);
+            border: 1px solid var(--border-color); border-radius: 10px;
+            display: none; flex-direction: column; overflow: hidden;
+        }
+        .lang-menu div { padding: 10px 15px; cursor: pointer; font-size: 1.2rem; }
+        .lang-menu div:hover { background: rgba(255,255,255,0.1); }
+
+        /* Новая быстрая загрузка */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(6, 6, 20, 0.95);
             display: none; justify-content: center; align-items: center; flex-direction: column;
             z-index: 9999;
         }
-        .loading-text { color: white; font-size: 1.2rem; margin-top: 20px; font-family: monospace; }
-        
-        /* Car Animation */
-        .car-loader { width: 100px; height: 50px; position: relative; }
-        .car-body { width: 80px; height: 25px; background: white; border-radius: 5px 20px 5px 5px; position: absolute; top: 15px; }
-        .wheel { width: 16px; height: 16px; background: #333; border-radius: 50%; position: absolute; bottom: 0; border: 2px solid white; animation: spin 0.5s linear infinite; }
-        .wheel-back { left: 10px; } .wheel-front { right: 15px; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .loader-line {
+            width: 120px; height: 3px; background: rgba(255,255,255,0.1);
+            position: relative; overflow: hidden; border-radius: 2px;
+        }
+        .loader-line::after {
+            content: ''; width: 40px; height: 100%; background: var(--accent-purple);
+            position: absolute; left: -40px; animation: move 0.8s linear infinite;
+        }
+        @keyframes move { 0% { left: -40px; } 100% { left: 120px; } }
+        .loading-text { color: white; font-size: 0.8rem; margin-top: 15px; font-family: monospace; letter-spacing: 2px; }
     </style>
 </head>
 <body>
 
     <div class="header-tag">RUSH HOUR ANALYZER</div>
+
+    <div class="lang-selector">
+        <div class="lang-btn" id="current-lang" onclick="toggleLang()">🇷🇺</div>
+        <div class="lang-menu" id="lang-menu">
+            <div onclick="changeLang('ru', '🇷🇺')">🇷🇺</div>
+            <div onclick="changeLang('en', '🇬🇧')">🇬🇧</div>
+            <div onclick="changeLang('pt', '🇵🇹')">🇵🇹</div>
+        </div>
+    </div>
     
     <div id="globeViz"></div>
 
     <div id="loading-overlay" class="loading-overlay">
-        <div class="car-loader">
-            <div class="car-body"></div>
-            <div class="wheel wheel-back"></div>
-            <div class="wheel wheel-front"></div>
-        </div>
-        <div class="loading-text">ЗАГРУЗКА...</div>
+        <div class="loader-line"></div>
+        <div class="loading-text">SCANNING...</div>
     </div>
 
     <div class="bottom-panel">
-        <div class="outcomes-section">
+        <div>
             <h2 id="ui-outcome">ИСХОД:</h2>
             <div class="prediction-row">
-                <div class="outcome-card" id="card-under"><div class="icon under">▼</div><div class="outcome-label">Under</div></div>
-                <div class="outcome-card" id="card-range"><div class="icon range">↔</div><div class="outcome-label">Range</div></div>
-                <div class="outcome-card" id="card-over"><div class="icon over">▲</div><div class="outcome-label">Over</div></div>
-                <div class="outcome-card" id="card-exact"><div class="icon exact">★</div><div class="outcome-label">Exact</div></div>
+                <div class="outcome-card" id="card-under"><div class="icon under">▼</div><div class="outcome-label">UNDER</div></div>
+                <div class="outcome-card" id="card-range"><div class="icon range">↔</div><div class="outcome-label">RANGE</div></div>
+                <div class="outcome-card" id="card-over"><div class="icon over">▲</div><div class="outcome-label">OVER</div></div>
+                <div class="outcome-card" id="card-exact"><div class="icon exact">★</div><div class="outcome-label">EXACT</div></div>
             </div>
         </div>
 
         <div class="controls-grid">
             <div class="column">
-                <h2 id="ui-status">СТАТУС:</h2>
-                <div class="static-log-text">> <span id="ui-log-loaded">OK</span></div>
-                <button class="btn-action" onclick="actionLoadLog()">LOG</button>
+                <h2>STATUS:</h2>
+                <div class="static-log-text">> OK</div>
+                <button class="btn-action" onclick="addLog('System Check: OK')">LOG</button>
             </div>
             <div class="column">
-                <div style="height: 15px;"></div> 
-                <button class="btn-action btn-analyze" onclick="triggerAnalysis()">АНАЛИЗ</button>
+                <button class="btn-action btn-analyze" onclick="startAnalysis()">АНАЛИЗ</button>
             </div>
             <div class="column">
-                <h2 id="ui-syslog">LOG:</h2>
+                <h2>LOG:</h2>
                 <div class="log-box" id="log-display"></div>
             </div>
         </div>
-        <div class="version-tag">release 1.0.9 | @rush_hour_x77_bot</div>
+        <div class="version-tag">release 1.0.9</div>
     </div>
 
     <script src="//unpkg.com/globe.gl"></script>
@@ -196,54 +222,63 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Инициализация глобуса (ТЕМНАЯ ТЕМА)
         const world = Globe()(document.getElementById('globeViz'))
             .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
             .backgroundColor('#060614')
             .showAtmosphere(true)
             .atmosphereColor('#4b0082')
             .atmosphereDaylightAlpha(0.1);
 
-        // Настройка вращения (ВСЕГДА МЕДЛЕННО)
+        // ПЛАНЕТА КРУТИТСЯ САМА ВСЕ ВРЕМЯ
         world.controls().autoRotate = true;
-        world.controls().autoRotateSpeed = 0.8;
-        world.controls().enableZoom = false; // Отключаем зум, чтобы не мешал скроллу на мобиле
+        world.controls().autoRotateSpeed = 1.2;
+        world.controls().enableZoom = false;
 
-        function triggerAnalysis() {
+        function toggleLang() {
+            const menu = document.getElementById('lang-menu');
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function changeLang(code, flag) {
+            document.getElementById('current-lang').innerText = flag;
+            toggleLang();
+            // Тут можно добавить смену текстов ИСХОД/АНАЛИЗ если нужно
+        }
+
+        function startAnalysis() {
             document.querySelectorAll('.outcome-card').forEach(c => c.classList.remove('active'));
             
+            // Шанс 60% на быструю загрузку (1 сек)
             if (Math.random() < 0.6) {
-                const overlay = document.getElementById('loading-overlay');
-                overlay.style.display = 'flex';
+                const loader = document.getElementById('loading-overlay');
+                loader.style.display = 'flex';
                 setTimeout(() => {
-                    overlay.style.display = 'none';
-                    finishAnalysis();
-                }, 4000);
+                    loader.style.display = 'none';
+                    showResult();
+                }, 1000); // Ровно 1 секунда
             } else {
-                finishAnalysis();
+                showResult();
             }
         }
 
-        function finishAnalysis() {
-            const options = ['card-under', 'card-over', 'card-range', 'card-exact'];
-            const winner = options[Math.floor(Math.random() * options.length)];
+        function showResult() {
+            const res = ['card-under', 'card-over', 'card-range', 'card-exact'];
+            const winner = res[Math.floor(Math.random() * res.length)];
             document.getElementById(winner).classList.add('active');
             
-            // Прыжок камеры к случайной точке при результате
-            const coords = { lat: (Math.random()-0.5)*120, lng: (Math.random()-0.5)*360 };
-            world.pointOfView({ ...coords, alt: 2 }, 2000);
+            // Камера прыгает к точке
+            const l = (Math.random()-0.5)*100, g = (Math.random()-0.5)*360;
+            world.pointOfView({ lat: l, lng: g, alt: 1.8 }, 1200);
             
-            const logBox = document.getElementById('log-display');
-            logBox.innerHTML += `<div>> DONE: ${winner.split('-')[1].toUpperCase()}</div>`;
-            logBox.scrollTop = logBox.scrollHeight;
+            addLog(`ANALYSIS DONE: ${winner.split('-')[1].toUpperCase()}`);
         }
 
-        function actionLoadLog() {
-            document.getElementById('log-display').innerHTML += `<div>> System Check... OK</div>`;
+        function addLog(msg) {
+            const b = document.getElementById('log-display');
+            b.innerHTML += `<div>> ${msg}</div>`;
+            b.scrollTop = b.scrollHeight;
         }
 
-        // Подгонка размера под экран
         window.addEventListener('resize', () => {
             world.width(window.innerWidth);
             world.height(document.getElementById('globeViz').offsetHeight);
