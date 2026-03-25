@@ -32,16 +32,25 @@
             overflow: hidden;
         }
 
-        /* Планета еще выше и компактнее */
+        /* Контейнер для планеты и панели, чтобы опустить их */
+        .globe-and-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Планета стала меньше и чуть ниже */
         #globeViz { 
             flex: 1; 
             width: 100%; 
             background: #000; 
-            max-height: 40%; 
-            margin-top: -20px; /* Сдвигаем еще выше */
+            max-height: 35%; /* Уменьшил до 35% */
+            margin-top: -10px; /* Сдвигаем еще выше, но панель опустим */
         }
 
+        /* Опускаем нижнюю панель чуть ниже */
         .bottom-panel {
+            margin-top: 10px; /* Опускаем панель */
             background-color: var(--panel-bg);
             border-top: 1px solid var(--border-color);
             border-radius: 25px 25px 0 0;
@@ -58,7 +67,7 @@
             gap: 10px;
         }
 
-        /* Выравнивание кнопок АНАЛИЗ и LOG */
+        /* Выравнивание кнопок АНАЛИЗ и LOG по нижней линии */
         .controls-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -77,7 +86,8 @@
         }
 
         .static-log-text { font-size: 0.7rem; color: #fff; font-family: monospace; }
-        .version-tag { font-size: 0.6rem; color: #555; font-family: monospace; margin-top: 5px; }
+        /*release text cleaned*/
+        .version-tag { font-size: 0.6rem; color: #555; font-family: monospace; margin-top: 5px; text-align: center; }
 
         .btn-action {
             width: 100%;
@@ -92,10 +102,8 @@
             cursor: pointer;
         }
 
-        /* Сдвигаем кнопку АНАЛИЗ чуть ниже для идеального выравнивания с LOG */
         .btn-analyze {
             background: #530094;
-            margin-bottom: 0px; 
             padding: 16px 5px;
         }
 
@@ -149,13 +157,31 @@
         .lang-menu div { padding: 10px 15px; cursor: pointer; font-size: 1.2rem; }
         .lang-menu div:hover { background: rgba(255,255,255,0.1); }
 
-        /* Новая быстрая загрузка */
+        /* Новая загрузка: 2D Машинка и Текст */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(6, 6, 20, 0.95);
             display: none; justify-content: center; align-items: center; flex-direction: column;
             z-index: 9999;
         }
+        /* 2D Машинка */
+        .car-loader-2d {
+            width: 100px; height: 50px;
+            position: relative;
+            margin-bottom: 10px; /* Над полоской */
+        }
+        .car-loader-2d::after {
+            content: ''; width: 80px; height: 25px; background: white; border-radius: 5px 20px 5px 5px;
+            position: absolute; top: 15px; left: 10px;
+        }
+        .wheel-2d {
+            width: 16px; height: 16px; background: #333; border-radius: 50%;
+            position: absolute; bottom: 0; border: 2px solid white;
+            animation: spin-2d 0.5s linear infinite;
+        }
+        .wheel-back-2d { left: 20px; } .wheel-front-2d { right: 25px; }
+        @keyframes spin-2d { 100% { transform: rotate(360deg); } }
+
         .loader-line {
             width: 120px; height: 3px; background: rgba(255,255,255,0.1);
             position: relative; overflow: hidden; border-radius: 2px;
@@ -165,12 +191,13 @@
             position: absolute; left: -40px; animation: move 0.8s linear infinite;
         }
         @keyframes move { 0% { left: -40px; } 100% { left: 120px; } }
+        /* ЗАГРУЗКА... text */
         .loading-text { color: white; font-size: 0.8rem; margin-top: 15px; font-family: monospace; letter-spacing: 2px; }
     </style>
 </head>
 <body>
 
-    <div class="header-tag">RUSH HOUR ANALYZER</div>
+    <div class="header-tag" id="analyzer-header">RUSH HOUR ANALYZER</div>
 
     <div class="lang-selector">
         <div class="lang-btn" id="current-lang" onclick="toggleLang()">🇷🇺</div>
@@ -181,39 +208,45 @@
         </div>
     </div>
     
-    <div id="globeViz"></div>
+    <div class="globe-and-panel">
+        <div id="globeViz"></div>
 
-    <div id="loading-overlay" class="loading-overlay">
-        <div class="loader-line"></div>
-        <div class="loading-text">SCANNING...</div>
-    </div>
-
-    <div class="bottom-panel">
-        <div>
-            <h2 id="ui-outcome">ИСХОД:</h2>
-            <div class="prediction-row">
-                <div class="outcome-card" id="card-under"><div class="icon under">▼</div><div class="outcome-label">UNDER</div></div>
-                <div class="outcome-card" id="card-range"><div class="icon range">↔</div><div class="outcome-label">RANGE</div></div>
-                <div class="outcome-card" id="card-over"><div class="icon over">▲</div><div class="outcome-label">OVER</div></div>
-                <div class="outcome-card" id="card-exact"><div class="icon exact">★</div><div class="outcome-label">EXACT</div></div>
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="car-loader-2d">
+                <div class="wheel-2d wheel-back-2d"></div>
+                <div class="wheel-2d wheel-front-2d"></div>
             </div>
+            <div class="loader-line"></div>
+            <div class="loading-text" id="scanning-text">ЗАГРУЗКА...</div>
         </div>
 
-        <div class="controls-grid">
-            <div class="column">
-                <h2>STATUS:</h2>
-                <div class="static-log-text">> OK</div>
-                <button class="btn-action" onclick="addLog('System Check: OK')">LOG</button>
+        <div class="bottom-panel">
+            <div>
+                <h2 id="ui-outcome">ИСХОД:</h2>
+                <div class="prediction-row">
+                    <div class="outcome-card" id="card-under"><div class="icon under">▼</div><div class="outcome-label">UNDER</div></div>
+                    <div class="outcome-card" id="card-range"><div class="icon range">↔</div><div class="outcome-label">RANGE</div></div>
+                    <div class="outcome-card" id="card-over"><div class="icon over">▲</div><div class="outcome-label">OVER</div></div>
+                    <div class="outcome-card" id="card-exact"><div class="icon exact">★</div><div class="outcome-label">EXACT</div></div>
+                </div>
             </div>
-            <div class="column">
-                <button class="btn-action btn-analyze" onclick="startAnalysis()">АНАЛИЗ</button>
+
+            <div class="controls-grid">
+                <div class="column">
+                    <h2 id="ui-status">STATUS:</h2>
+                    <div class="static-log-text">> OK</div>
+                    <button class="btn-action" id="ui-btn-load" onclick="actionLoadLog()">LOG</button>
+                </div>
+                <div class="column">
+                    <button class="btn-action btn-analyze" id="ui-btn-analyze" onclick="startAnalysis()">АНАЛИЗ</button>
+                </div>
+                <div class="column">
+                    <h2 id="ui-syslog">LOG:</h2>
+                    <div class="log-box" id="log-display"></div>
+                </div>
             </div>
-            <div class="column">
-                <h2>LOG:</h2>
-                <div class="log-box" id="log-display"></div>
-            </div>
+            <div class="version-tag" id="release-footer-text">release 1.0.9</div>
         </div>
-        <div class="version-tag">release 1.0.9</div>
     </div>
 
     <script src="//unpkg.com/globe.gl"></script>
@@ -222,6 +255,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
+        // Инициализация глобуса с темной темой
         const world = Globe()(document.getElementById('globeViz'))
             .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
             .backgroundColor('#060614')
@@ -229,20 +263,81 @@
             .atmosphereColor('#4b0082')
             .atmosphereDaylightAlpha(0.1);
 
-        // ПЛАНЕТА КРУТИТСЯ САМА ВСЕ ВРЕМЯ
+        // ИСПРАВИЛ: ПЛАНЕТА КРУТИТСЯ САМА ВСЕ ВРЕМЯ МЕДЛЕННО
         world.controls().autoRotate = true;
-        world.controls().autoRotateSpeed = 1.2;
-        world.controls().enableZoom = false;
+        world.controls().autoRotateSpeed = 1.2; // медленная скорость
+        world.controls().enableZoom = false; // Отключаем зум, чтобы не мешал скроллу
+
+        // --- СЛОВАРЬ ПЕРЕВОДОВ ДЛЯ ВСЕХ ЭЛЕМЕНТОВ ---
+        const dictionary = {
+            ru: {
+                header: "RUSH HOUR ANALYZER",
+                footer: "release 1.0.9",
+                outcome: "ИСХОД:", status: "STATUS:", syslog: "LOG:",
+                cardUnder: "UNDER", cardRange: "RANGE", cardOver: "OVER", cardExact: "EXACT",
+                btnLoad: "LOG", btnAnalyze: "АНАЛИЗ",
+                loading: "ЗАГРУЗКА...",
+                logDone: "АНАЛИЗ ЗАВЕРШЕН: ", logSystem: "Системная проверка... OK"
+            },
+            en: {
+                header: "RUSH HOUR ANALYZER",
+                footer: "release 1.0.9",
+                outcome: "OUTCOME:", status: "STATUS:", syslog: "LOG:",
+                cardUnder: "UNDER", cardRange: "RANGE", cardOver: "OVER", cardExact: "EXACT",
+                btnLoad: "LOG", btnAnalyze: "ANALYZE",
+                loading: "SCANNING...",
+                logDone: "ANALYSIS DONE: ", logSystem: "System Check... OK"
+            },
+            pt: {
+                header: "RUSH HOUR ANALYZER",
+                footer: "release 1.0.9",
+                outcome: "RESULTADO:", status: "STATUS:", syslog: "LOG:",
+                cardUnder: "BAIXO", cardRange: "FAIXA", cardOver: "ALTO", cardExact: "EXATO",
+                btnLoad: "LOG", btnAnalyze: "ANALISAR",
+                loading: "DIGITALIZAÇÃO...",
+                logDone: "ANÁLISE FEITA: ", logSystem: "Verificação do Sistema... OK"
+            }
+        };
+
+        let currentLang = 'ru';
 
         function toggleLang() {
             const menu = document.getElementById('lang-menu');
             menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
         }
 
+        // ИСПРАВИЛ: ПОЛНЫЙ ПЕРЕВОД ВСЕГО ИНТЕРФЕЙСА
         function changeLang(code, flag) {
             document.getElementById('current-lang').innerText = flag;
             toggleLang();
-            // Тут можно добавить смену текстов ИСХОД/АНАЛИЗ если нужно
+            currentLang = code;
+            updateUITranslations();
+        }
+
+        function updateUITranslations() {
+            const t = dictionary[currentLang];
+            
+            // Заголовок и подвал
+            document.getElementById('analyzer-header').innerText = t.header;
+            document.getElementById('release-footer-text').innerText = t.footer;
+
+            // Заголовки панелей
+            document.getElementById('ui-outcome').innerText = t.outcome;
+            document.getElementById('ui-status').innerText = t.status;
+            document.getElementById('ui-syslog').innerText = t.syslog;
+
+            // Карты результатов
+            document.querySelectorAll('.outcome-card .outcome-label')[0].innerText = t.cardUnder;
+            document.querySelectorAll('.outcome-card .outcome-label')[1].innerText = t.cardRange;
+            document.querySelectorAll('.outcome-card .outcome-label')[2].innerText = t.cardOver;
+            document.querySelectorAll('.outcome-card .outcome-label')[3].innerText = t.cardExact;
+
+            // Кнопки
+            document.getElementById('ui-btn-load').innerText = t.btnLoad;
+            document.getElementById('ui-btn-analyze').innerText = t.btnAnalyze;
+
+            // Текст загрузки
+            document.getElementById('scanning-text').innerText = t.loading;
         }
 
         function startAnalysis() {
@@ -262,6 +357,7 @@
         }
 
         function showResult() {
+            const t = dictionary[currentLang];
             const res = ['card-under', 'card-over', 'card-range', 'card-exact'];
             const winner = res[Math.floor(Math.random() * res.length)];
             document.getElementById(winner).classList.add('active');
@@ -270,7 +366,13 @@
             const l = (Math.random()-0.5)*100, g = (Math.random()-0.5)*360;
             world.pointOfView({ lat: l, lng: g, alt: 1.8 }, 1200);
             
-            addLog(`ANALYSIS DONE: ${winner.split('-')[1].toUpperCase()}`);
+            // ИСПРАВИЛ: ЛОГИ ТОЖЕ ПЕРЕВЕДЕНЫ
+            addLog(`${t.logDone}${winner.split('-')[1].toUpperCase()}`);
+        }
+
+        function actionLoadLog() {
+            const t = dictionary[currentLang];
+            addLog(t.logSystem);
         }
 
         function addLog(msg) {
@@ -279,6 +381,7 @@
             b.scrollTop = b.scrollHeight;
         }
 
+        // Подгонка размера глобуса под экран
         window.addEventListener('resize', () => {
             world.width(window.innerWidth);
             world.height(document.getElementById('globeViz').offsetHeight);
