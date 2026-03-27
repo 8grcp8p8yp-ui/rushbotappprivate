@@ -27,25 +27,21 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
-            display: flex;
-            flex-direction: column;
             overflow: hidden;
             position: relative;
         }
 
-        /* ПЛАНЕТА: Поднята вверх, центр находится в центре верхней части */
+        /* ПЛАНЕТА: Поднята еще выше */
         #globeViz { 
             position: absolute;
-            top: 0;
+            top: -10vh; /* Сдвиг вверх */
             left: 0;
             width: 100%; 
-            height: 50vh; /* Занимает половину экрана */
-            transform: translateY(0); /* Не опускаем */
-            background: #000; 
+            height: 60vh;
             z-index: 1;
         }
 
-        /* НИЖНЯЯ ПАНЕЛЬ: Осталась на своем месте без изменений */
+        /* НИЖНЯЯ ПАНЕЛЬ: Без изменений, зафиксирована внизу */
         .bottom-panel {
             position: absolute;
             bottom: 0;
@@ -84,8 +80,9 @@
             font-weight: bold;
         }
 
-        /* Перекрасил текст СТАТУСА в белый */
+        /* ТОЧЕЧНАЯ ПРАВКА: Цвет статуса теперь белый (#ffffff) */
         .static-log-text { font-size: 0.7rem; color: #ffffff; font-family: monospace; }
+        
         .version-tag { font-size: 0.6rem; color: #555; font-family: monospace; margin-top: 5px; text-align: center; }
 
         .btn-action {
@@ -106,7 +103,7 @@
             padding: 16px 5px;
         }
 
-        /* Перекрасил текст ЛОГОВ в белый */
+        /* Логи тоже белые */
         .log-box {
             background: rgba(0,0,0,0.4); border: 1px solid var(--border-color);
             padding: 8px; font-size: 0.65rem; color: #ffffff;
@@ -140,7 +137,22 @@
             color: white; border-radius: 20px; font-weight: bold;
         }
 
-        /* Загрузка: Машинка и Текст */
+        /* Выбор языка */
+        .lang-selector { position: absolute; top: 15px; right: 20px; z-index: 1002; }
+        .lang-btn {
+            background: rgba(0,0,0,0.8); border: 1px solid var(--border-color);
+            border-radius: 50%; width: 35px; height: 35px; display: flex;
+            align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer;
+        }
+        .lang-menu {
+            position: absolute; top: 45px; right: 0; background: var(--panel-bg);
+            border: 1px solid var(--border-color); border-radius: 10px;
+            display: none; flex-direction: column; overflow: hidden;
+        }
+        .lang-menu div { padding: 10px 15px; cursor: pointer; font-size: 1.2rem; }
+        .lang-menu div:hover { background: rgba(255,255,255,0.1); }
+
+        /* ЭКРАН ЗАГРУЗКИ С МАШИНКОЙ И ДЫМОМ */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(6, 6, 20, 0.95);
@@ -148,68 +160,83 @@
             z-index: 9999;
         }
         .car-container {
-            width: 150px;
-            height: 60px;
             position: relative;
             margin-bottom: 20px;
-            overflow: visible; /* Чтобы дым вылетал */
+            display: flex;
+            align-items: flex-end;
         }
         .car-loader-gif {
-            width: 100%;
-            height: auto;
-            /* Фильтры делают машинку белой */
+            width: 150px;
             filter: grayscale(100%) brightness(300%) contrast(120%);
             z-index: 2;
             position: relative;
         }
-        /* Дым за машинкой */
-        .smoke-puff {
+        .smoke {
             position: absolute;
-            bottom: -5px;
+            bottom: 5px;
             left: 20px;
-            width: 20px;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.6);
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.7);
             border-radius: 50%;
-            filter: blur(5px);
+            filter: blur(8px);
             animation: smoke-anim 0.6s infinite linear;
             z-index: 1;
         }
+        .smoke::after {
+            content: '';
+            position: absolute;
+            top: -15px; left: -20px;
+            width: 25px; height: 25px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            filter: blur(6px);
+            animation: smoke-anim 0.8s infinite linear 0.2s;
+        }
         @keyframes smoke-anim {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(2.5) translateX(-20px) translateY(-10px); opacity: 0; }
+            0% { transform: scale(0.8) translateX(0) translateY(0); opacity: 1; }
+            100% { transform: scale(2.5) translateX(-30px) translateY(-10px); opacity: 0; }
         }
 
         .loader-line {
-            width: 120px; height: 3px; background: rgba(255,255,255,0.1);
+            width: 140px; height: 3px; background: rgba(255,255,255,0.1);
             position: relative; overflow: hidden; border-radius: 2px;
         }
         .loader-line::after {
-            content: ''; width: 40px; height: 100%; background: var(--accent-purple);
-            position: absolute; left: -40px; animation: move 0.8s linear infinite;
+            content: ''; width: 50px; height: 100%; background: var(--accent-purple);
+            position: absolute; left: -50px; animation: move 0.8s linear infinite;
         }
-        @keyframes move { 0% { left: -40px; } 100% { left: 120px; } }
+        @keyframes move { 0% { left: -50px; } 100% { left: 140px; } }
         .loading-text { color: white; font-size: 0.8rem; margin-top: 15px; font-family: monospace; letter-spacing: 2px; }
     </style>
 </head>
 <body>
 
-    <div class="header-tag">RUSH HOUR ANALYZER</div>
+    <div class="header-tag" id="analyzer-header">RUSH HOUR ANALYZER</div>
+
+    <div class="lang-selector">
+        <div class="lang-btn" id="current-lang" onclick="toggleLang()">🇷🇺</div>
+        <div class="lang-menu" id="lang-menu">
+            <div onclick="changeLang('ru', '🇷🇺')">🇷🇺</div>
+            <div onclick="changeLang('en', '🇬🇧')">🇬🇧</div>
+            <div onclick="changeLang('pt', '🇵🇹')">🇵🇹</div>
+        </div>
+    </div>
     
     <div id="globeViz"></div>
 
     <div id="loading-overlay" class="loading-overlay">
         <div class="car-container">
-            <div class="smoke-puff"></div>
-            <img src="1.gif" id="car-gif" class="car-loader-gif" alt="">
+            <div class="smoke"></div>
+            <img src="1.gif" class="car-loader-gif" alt="">
         </div>
         <div class="loader-line"></div>
-        <div class="loading-text">ЗАГРУЗКА . . .</div>
+        <div class="loading-text" id="scanning-text">ЗАГРУЗКА . . .</div>
     </div>
 
     <div class="bottom-panel">
         <div>
-            <h2>ИСХОД:</h2>
+            <h2 id="ui-outcome">ИСХОД:</h2>
             <div class="prediction-row">
                 <div class="outcome-card" id="card-under"><div class="icon under">▼</div><div class="outcome-label">UNDER</div></div>
                 <div class="outcome-card" id="card-range"><div class="icon range">↔</div><div class="outcome-label">RANGE</div></div>
@@ -220,19 +247,22 @@
 
         <div class="controls-grid">
             <div class="column">
-                <h2>STATUS:</h2>
-                <div class="static-log-text">> OK</div>
-                <button class="btn-action" onclick="actionLoadLog()">LOG</button>
+                <h2 id="ui-status">СТАТУС:</h2>
+                <div class="static-log-text" id="ui-static-log">> Лог загружен</div>
+                <button class="btn-action" id="ui-btn-load" onclick="actionLoadLog()">ЛОГ</button>
             </div>
             <div class="column">
-                <button class="btn-action btn-analyze" onclick="startAnalysis()">АНАЛИЗ</button>
+                <button class="btn-action btn-analyze" id="ui-btn-analyze" onclick="startAnalysis()">АНАЛИЗ</button>
             </div>
             <div class="column">
-                <h2>LOG:</h2>
-                <div class="log-box" id="log-display"></div>
+                <h2 id="ui-syslog">ЛОГ:</h2>
+                <div class="log-box" id="log-display">
+                    <div>> НОМЕР ЗАГРУЖЕН.</div>
+                    <div>> ЛОГ ЗАГРУЖЕН.</div>
+                </div>
             </div>
         </div>
-        <div class="version-tag">release 1.0.9</div>
+        <div class="version-tag" id="release-footer-text">release 1.0.9</div>
     </div>
 
     <script src="//unpkg.com/globe.gl"></script>
@@ -241,7 +271,6 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Сдвинул глобус выше
         const world = Globe()(document.getElementById('globeViz'))
             .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
             .backgroundColor('#060614')
@@ -249,58 +278,128 @@
             .atmosphereColor('#4b0082')
             .atmosphereDaylightAlpha(0.1);
 
-        // ИСПРАВИЛ БАГ: ПЛАНЕТА КРУТИТСЯ САМА ВСЕ ВРЕМЯ МЕДЛЕННО
         world.controls().autoRotate = true;
         world.controls().autoRotateSpeed = 1.2;
-        world.controls().enableZoom = false; // Отключаем зум чтобы не мешал скроллу
+        world.controls().enableZoom = false;
 
-        function triggerAnalysis() {
+        // ТОЧЕЧНАЯ ПРАВКА: Во всех языках карточки называются UNDER, RANGE, OVER, EXACT
+        const dictionary = {
+            ru: {
+                header: "RUSH HOUR ANALYZER",
+                footer: "release 1.0.9",
+                outcome: "ИСХОД:", status: "СТАТУС:", syslog: "ЛОГ:",
+                cardUnder: "UNDER", cardRange: "RANGE", cardOver: "OVER", cardExact: "EXACT",
+                btnLoad: "ЛОГ", btnAnalyze: "АНАЛИЗ",
+                loading: "ЗАГРУЗКА . . .",
+                logDone: "АНАЛИЗ ЗАВЕРШЕН: ",
+                logSystem: "> Лог загружен"
+            },
+            en: {
+                header: "RUSH HOUR ANALYZER",
+                footer: "release 1.0.9",
+                outcome: "OUTCOME:", status: "STATUS:", syslog: "LOG:",
+                cardUnder: "UNDER", cardRange: "RANGE", cardOver: "OVER", cardExact: "EXACT",
+                btnLoad: "LOG", btnAnalyze: "ANALYZE",
+                loading: "SCANNING . . .",
+                logDone: "ANALYSIS DONE: ",
+                logSystem: "> Log loaded"
+            },
+            pt: {
+                header: "RUSH HOUR ANALYZER",
+                footer: "release 1.0.9",
+                outcome: "RESULTADO:", status: "STATUS:", syslog: "LOG:",
+                cardUnder: "UNDER", cardRange: "RANGE", cardOver: "OVER", cardExact: "EXACT",
+                btnLoad: "LOG", btnAnalyze: "ANALISAR",
+                loading: "DIGITALIZAÇÃO . . .",
+                logDone: "ANÁLISE FEITA: ",
+                logSystem: "> Log carregado"
+            }
+        };
+
+        let currentLang = 'ru';
+
+        window.onload = () => {
+            updateUITranslations();
+        };
+
+        function toggleLang() {
+            const menu = document.getElementById('lang-menu');
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function changeLang(code, flag) {
+            document.getElementById('current-lang').innerText = flag;
+            toggleLang();
+            currentLang = code;
+            updateUITranslations();
+        }
+
+        function updateUITranslations() {
+            const t = dictionary[currentLang];
+            
+            document.getElementById('analyzer-header').innerText = t.header;
+            document.getElementById('release-footer-text').innerText = t.footer;
+            document.getElementById('ui-outcome').innerText = t.outcome;
+            document.getElementById('ui-status').innerText = t.status;
+            document.getElementById('ui-syslog').innerText = t.syslog;
+
+            document.querySelectorAll('.outcome-card .outcome-label')[0].innerText = t.cardUnder;
+            document.querySelectorAll('.outcome-card .outcome-label')[1].innerText = t.cardRange;
+            document.querySelectorAll('.outcome-card .outcome-label')[2].innerText = t.cardOver;
+            document.querySelectorAll('.outcome-card .outcome-label')[3].innerText = t.cardExact;
+
+            document.getElementById('ui-btn-load').innerText = t.btnLoad;
+            document.getElementById('ui-btn-analyze').innerText = t.btnAnalyze;
+            document.getElementById('scanning-text').innerText = t.loading;
+            document.getElementById('ui-static-log').innerText = t.logSystem;
+        }
+
+        function startAnalysis() {
             document.querySelectorAll('.outcome-card').forEach(c => c.classList.remove('active'));
             
             if (Math.random() < 0.6) {
-                const overlay = document.getElementById('loading-overlay');
-                overlay.style.display = 'flex';
+                const loader = document.getElementById('loading-overlay');
+                loader.style.display = 'flex';
                 setTimeout(() => {
-                    overlay.style.display = 'none';
-                    finishAnalysis();
-                }, 4000); // 4 секунды загрузки
+                    loader.style.display = 'none';
+                    showResult();
+                }, 1000); 
             } else {
-                finishAnalysis();
+                showResult();
             }
         }
 
-        function finishAnalysis() {
-            // ИСПРАВИЛ ЛОГИКУ: Шанс 50-50 только Нижний или Верхний
-            const options = ['card-under', 'card-over'];
-            const winner = options[Math.floor(Math.random() * options.length)];
+        function showResult() {
+            const t = dictionary[currentLang];
+            
+            // ТОЧЕЧНАЯ ПРАВКА: Шанс 50/50 только на Ниже(Under) или Выше(Over)
+            const res = ['card-under', 'card-over'];
+            const winner = res[Math.floor(Math.random() * res.length)];
             document.getElementById(winner).classList.add('active');
             
-            // Камера прыгает к точке
-            const l = (Math.random()-0.5)*120, g = (Math.random()-0.5)*360;
-            world.pointOfView({ lat: l, lng: g, alt: 2 }, 2000);
+            const l = (Math.random()-0.5)*100, g = (Math.random()-0.5)*360;
+            world.pointOfView({ lat: l, lng: g, alt: 1.8 }, 1200);
             
-            const logBox = document.getElementById('log-display');
-            logBox.innerHTML += `<div>> DONE: ${winner.split('-')[1].toUpperCase()}</div>`;
-            logBox.scrollTop = logBox.scrollHeight;
+            addLog(`${t.logDone}${winner.split('-')[1].toUpperCase()}`);
         }
 
         function actionLoadLog() {
-            document.getElementById('log-display').innerHTML += `<div>> System Check... OK</div>`;
+            const t = dictionary[currentLang];
+            addLog(t.logSystem.replace('> ', ''));
         }
 
-        // Подгонка размера под экран
+        function addLog(msg) {
+            const b = document.getElementById('log-display');
+            b.innerHTML += `<div>> ${msg}</div>`;
+            b.scrollTop = b.scrollHeight;
+        }
+
         window.addEventListener('resize', () => {
             world.width(window.innerWidth);
             world.height(document.getElementById('globeViz').offsetHeight);
         });
         world.width(window.innerWidth);
         world.height(document.getElementById('globeViz').offsetHeight);
-
-        // JavaScript фикс для проверки гифки
-        const carGif = document.getElementById('car-gif');
-        carGif.onerror = function() {
-            document.getElementById('log-display').innerHTML += `<div style="color: red;">> Error: car GIF not found at src="1.gif"</div>`;
-        };
     </script>
 </body>
 </html>
