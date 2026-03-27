@@ -31,17 +31,17 @@
             position: relative;
         }
 
-        /* ПЛАНЕТА: Поднята еще выше */
+        /* ПЛАНЕТА: Поднята в центр голубого креста */
         #globeViz { 
             position: absolute;
-            top: -10vh; /* Сдвиг вверх */
+            top: -15vh; /* Центр планеты теперь выше */
             left: 0;
             width: 100%; 
-            height: 60vh;
+            height: 65vh;
             z-index: 1;
         }
 
-        /* НИЖНЯЯ ПАНЕЛЬ: Без изменений, зафиксирована внизу */
+        /* НИЖНЯЯ ПАНЕЛЬ: Осталась без изменений */
         .bottom-panel {
             position: absolute;
             bottom: 0;
@@ -80,9 +80,8 @@
             font-weight: bold;
         }
 
-        /* ТОЧЕЧНАЯ ПРАВКА: Цвет статуса теперь белый (#ffffff) */
+        /* СТАТУС: Текст белый, как просили */
         .static-log-text { font-size: 0.7rem; color: #ffffff; font-family: monospace; }
-        
         .version-tag { font-size: 0.6rem; color: #555; font-family: monospace; margin-top: 5px; text-align: center; }
 
         .btn-action {
@@ -98,12 +97,9 @@
             cursor: pointer;
         }
 
-        .btn-analyze {
-            background: #530094;
-            padding: 16px 5px;
-        }
+        .btn-analyze { background: #530094; padding: 16px 5px; }
 
-        /* Логи тоже белые */
+        /* ЛОГ: Текст белый */
         .log-box {
             background: rgba(0,0,0,0.4); border: 1px solid var(--border-color);
             padding: 8px; font-size: 0.65rem; color: #ffffff;
@@ -119,9 +115,7 @@
 
         .outcome-card.active { opacity: 1; }
         #card-under.active { border-color: var(--color-under); box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); }
-        #card-range.active { border-color: var(--color-range); box-shadow: 0 0 15px rgba(0, 221, 238, 0.2); }
         #card-over.active { border-color: var(--color-over); box-shadow: 0 0 15px rgba(0, 255, 68, 0.2); }
-        #card-exact.active { border-color: var(--color-exact); box-shadow: 0 0 15px rgba(255, 170, 0, 0.2); }
         
         .icon { width: 26px; height: 26px; border-radius: 50%; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
         .icon.under { background: var(--color-under); }
@@ -150,62 +144,28 @@
             display: none; flex-direction: column; overflow: hidden;
         }
         .lang-menu div { padding: 10px 15px; cursor: pointer; font-size: 1.2rem; }
-        .lang-menu div:hover { background: rgba(255,255,255,0.1); }
 
-        /* ЭКРАН ЗАГРУЗКИ С МАШИНКОЙ И ДЫМОМ */
+        /* ЗАГРУЗКА: Машинка и Дым */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(6, 6, 20, 0.95);
             display: none; justify-content: center; align-items: center; flex-direction: column;
             z-index: 9999;
         }
-        .car-container {
-            position: relative;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: flex-end;
-        }
-        .car-loader-gif {
-            width: 150px;
-            filter: grayscale(100%) brightness(300%) contrast(120%);
-            z-index: 2;
-            position: relative;
-        }
+        .car-container { position: relative; margin-bottom: 20px; display: flex; align-items: flex-end; }
+        .car-loader-gif { width: 150px; filter: grayscale(100%) brightness(300%) contrast(120%); z-index: 2; position: relative; }
         .smoke {
-            position: absolute;
-            bottom: 5px;
-            left: 20px;
-            width: 30px;
-            height: 30px;
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 50%;
-            filter: blur(8px);
-            animation: smoke-anim 0.6s infinite linear;
-            z-index: 1;
-        }
-        .smoke::after {
-            content: '';
-            position: absolute;
-            top: -15px; left: -20px;
-            width: 25px; height: 25px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            filter: blur(6px);
-            animation: smoke-anim 0.8s infinite linear 0.2s;
+            position: absolute; bottom: 5px; left: 20px; width: 30px; height: 30px;
+            background: rgba(255, 255, 255, 0.7); border-radius: 50%; filter: blur(8px);
+            animation: smoke-anim 0.6s infinite linear; z-index: 1;
         }
         @keyframes smoke-anim {
             0% { transform: scale(0.8) translateX(0) translateY(0); opacity: 1; }
             100% { transform: scale(2.5) translateX(-30px) translateY(-10px); opacity: 0; }
         }
 
-        .loader-line {
-            width: 140px; height: 3px; background: rgba(255,255,255,0.1);
-            position: relative; overflow: hidden; border-radius: 2px;
-        }
-        .loader-line::after {
-            content: ''; width: 50px; height: 100%; background: var(--accent-purple);
-            position: absolute; left: -50px; animation: move 0.8s linear infinite;
-        }
+        .loader-line { width: 140px; height: 3px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; border-radius: 2px; }
+        .loader-line::after { content: ''; width: 50px; height: 100%; background: var(--accent-purple); position: absolute; left: -50px; animation: move 0.8s linear infinite; }
         @keyframes move { 0% { left: -50px; } 100% { left: 140px; } }
         .loading-text { color: white; font-size: 0.8rem; margin-top: 15px; font-family: monospace; letter-spacing: 2px; }
     </style>
@@ -228,7 +188,7 @@
     <div id="loading-overlay" class="loading-overlay">
         <div class="car-container">
             <div class="smoke"></div>
-            <img src="1.gif" class="car-loader-gif" alt="">
+            <img src="1.gif" class="car-loader-gif" loading="eager" alt="">
         </div>
         <div class="loader-line"></div>
         <div class="loading-text" id="scanning-text">ЗАГРУЗКА . . .</div>
@@ -282,45 +242,30 @@
         world.controls().autoRotateSpeed = 1.2;
         world.controls().enableZoom = false;
 
-        // ТОЧЕЧНАЯ ПРАВКА: Во всех языках карточки называются UNDER, RANGE, OVER, EXACT
         const dictionary = {
             ru: {
-                header: "RUSH HOUR ANALYZER",
-                footer: "release 1.0.9",
+                header: "RUSH HOUR ANALYZER", footer: "release 1.0.9",
                 outcome: "ИСХОД:", status: "СТАТУС:", syslog: "ЛОГ:",
-                cardUnder: "UNDER", cardRange: "RANGE", cardOver: "OVER", cardExact: "EXACT",
                 btnLoad: "ЛОГ", btnAnalyze: "АНАЛИЗ",
-                loading: "ЗАГРУЗКА . . .",
-                logDone: "АНАЛИЗ ЗАВЕРШЕН: ",
-                logSystem: "> Лог загружен"
+                loading: "ЗАГРУЗКА . . .", logDone: "АНАЛИЗ ЗАВЕРШЕН: ", logSystem: "> Лог загружен"
             },
             en: {
-                header: "RUSH HOUR ANALYZER",
-                footer: "release 1.0.9",
+                header: "RUSH HOUR ANALYZER", footer: "release 1.0.9",
                 outcome: "OUTCOME:", status: "STATUS:", syslog: "LOG:",
-                cardUnder: "UNDER", cardRange: "RANGE", cardOver: "OVER", cardExact: "EXACT",
                 btnLoad: "LOG", btnAnalyze: "ANALYZE",
-                loading: "SCANNING . . .",
-                logDone: "ANALYSIS DONE: ",
-                logSystem: "> Log loaded"
+                loading: "SCANNING . . .", logDone: "ANALYSIS DONE: ", logSystem: "> Log loaded"
             },
             pt: {
-                header: "RUSH HOUR ANALYZER",
-                footer: "release 1.0.9",
+                header: "RUSH HOUR ANALYZER", footer: "release 1.0.9",
                 outcome: "RESULTADO:", status: "STATUS:", syslog: "LOG:",
-                cardUnder: "UNDER", cardRange: "RANGE", cardOver: "OVER", cardExact: "EXACT",
                 btnLoad: "LOG", btnAnalyze: "ANALISAR",
-                loading: "DIGITALIZAÇÃO . . .",
-                logDone: "ANÁLISE FEITA: ",
-                logSystem: "> Log carregado"
+                loading: "DIGITALIZAÇÃO . . .", logDone: "ANÁLISE FEITA: ", logSystem: "> Log carregado"
             }
         };
 
         let currentLang = 'ru';
 
-        window.onload = () => {
-            updateUITranslations();
-        };
+        window.onload = () => { updateUITranslations(); };
 
         function toggleLang() {
             const menu = document.getElementById('lang-menu');
@@ -336,18 +281,11 @@
 
         function updateUITranslations() {
             const t = dictionary[currentLang];
-            
             document.getElementById('analyzer-header').innerText = t.header;
             document.getElementById('release-footer-text').innerText = t.footer;
             document.getElementById('ui-outcome').innerText = t.outcome;
             document.getElementById('ui-status').innerText = t.status;
             document.getElementById('ui-syslog').innerText = t.syslog;
-
-            document.querySelectorAll('.outcome-card .outcome-label')[0].innerText = t.cardUnder;
-            document.querySelectorAll('.outcome-card .outcome-label')[1].innerText = t.cardRange;
-            document.querySelectorAll('.outcome-card .outcome-label')[2].innerText = t.cardOver;
-            document.querySelectorAll('.outcome-card .outcome-label')[3].innerText = t.cardExact;
-
             document.getElementById('ui-btn-load').innerText = t.btnLoad;
             document.getElementById('ui-btn-analyze').innerText = t.btnAnalyze;
             document.getElementById('scanning-text').innerText = t.loading;
@@ -356,23 +294,17 @@
 
         function startAnalysis() {
             document.querySelectorAll('.outcome-card').forEach(c => c.classList.remove('active'));
-            
-            if (Math.random() < 0.6) {
-                const loader = document.getElementById('loading-overlay');
-                loader.style.display = 'flex';
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    showResult();
-                }, 1000); 
-            } else {
+            const loader = document.getElementById('loading-overlay');
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                loader.style.display = 'none';
                 showResult();
-            }
+            }, 1500); 
         }
 
         function showResult() {
             const t = dictionary[currentLang];
-            
-            // ТОЧЕЧНАЯ ПРАВКА: Шанс 50/50 только на Ниже(Under) или Выше(Over)
+            // Логика 50/50: только UNDER или OVER
             const res = ['card-under', 'card-over'];
             const winner = res[Math.floor(Math.random() * res.length)];
             document.getElementById(winner).classList.add('active');
@@ -383,15 +315,15 @@
             addLog(`${t.logDone}${winner.split('-')[1].toUpperCase()}`);
         }
 
-        function actionLoadLog() {
-            const t = dictionary[currentLang];
-            addLog(t.logSystem.replace('> ', ''));
-        }
-
         function addLog(msg) {
             const b = document.getElementById('log-display');
             b.innerHTML += `<div>> ${msg}</div>`;
             b.scrollTop = b.scrollHeight;
+        }
+
+        function actionLoadLog() {
+            const t = dictionary[currentLang];
+            addLog(t.logSystem.replace('> ', ''));
         }
 
         window.addEventListener('resize', () => {
