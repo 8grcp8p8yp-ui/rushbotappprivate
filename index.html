@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>RUSH HOUR ANALYZER</title>
+    <title>HOUR RUSH ANALYZER</title>
     
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
@@ -31,17 +31,17 @@
             position: relative;
         }
 
-        /* ПЛАНЕТА: Поднята в центр голубого креста */
+        /* ПЛАНЕТА */
         #globeViz { 
             position: absolute;
-            top: -15vh; /* Центр планеты теперь выше */
+            top: -15vh; 
             left: 0;
             width: 100%; 
             height: 65vh;
             z-index: 1;
         }
 
-        /* НИЖНЯЯ ПАНЕЛЬ: Осталась без изменений */
+        /* НИЖНЯЯ ПАНЕЛЬ */
         .bottom-panel {
             position: absolute;
             bottom: 0;
@@ -80,7 +80,6 @@
             font-weight: bold;
         }
 
-        /* СТАТУС: Текст белый, как просили */
         .static-log-text { font-size: 0.7rem; color: #ffffff; font-family: monospace; }
         .version-tag { font-size: 0.6rem; color: #555; font-family: monospace; margin-top: 5px; text-align: center; }
 
@@ -99,7 +98,6 @@
 
         .btn-analyze { background: #530094; padding: 16px 5px; }
 
-        /* ЛОГ: Текст белый */
         .log-box {
             background: rgba(0,0,0,0.4); border: 1px solid var(--border-color);
             padding: 8px; font-size: 0.65rem; color: #ffffff;
@@ -115,14 +113,21 @@
 
         .outcome-card.active { opacity: 1; }
         #card-under.active { border-color: var(--color-under); box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); }
-        #card-over.active { border-color: var(--color-over); box-shadow: 0 0 15px rgba(0, 255, 68, 0.2); }
+        
+        /* УСИЛЕННЫЙ ЗЕЛЕНЫЙ НЕОН ДЛЯ OVER */
+        #card-over.active { 
+            border-color: var(--color-over); 
+            box-shadow: 0 0 25px #00ff44, 0 0 10px rgba(0, 255, 68, 0.8) inset; 
+            background: rgba(0, 255, 68, 0.1);
+        }
         
         .icon { width: 26px; height: 26px; border-radius: 50%; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
         .icon.under { background: var(--color-under); }
         .icon.range { background: var(--color-range); }
-        .icon.over { background: var(--color-over); }
+        .icon.over { background: var(--color-over); color: #000; font-weight: bold;}
         .icon.exact { background: var(--color-exact); }
         .outcome-label { font-size: 0.55rem; font-weight: bold; margin-top: 4px; color: #aaa; }
+        #card-over.active .outcome-label { color: #00ff44; text-shadow: 0 0 5px #00ff44; }
 
         .header-tag {
             position: absolute; top: 15px; left: 20px; z-index: 1000;
@@ -145,7 +150,7 @@
         }
         .lang-menu div { padding: 10px 15px; cursor: pointer; font-size: 1.2rem; }
 
-        /* ЗАГРУЗКА: Машинка и Дым */
+        /* ЗАГРУЗКА */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(6, 6, 20, 0.95);
@@ -153,7 +158,10 @@
             z-index: 9999;
         }
         .car-container { position: relative; margin-bottom: 20px; display: flex; align-items: flex-end; }
-        .car-loader-gif { width: 150px; filter: grayscale(100%) brightness(300%) contrast(120%); z-index: 2; position: relative; }
+        
+        /* УБРАЛ ФИЛЬТРЫ, ЧТОБЫ МАШИНКА БЫЛА ВИДНА */
+        .car-loader-gif { width: 150px; z-index: 2; position: relative; } 
+        
         .smoke {
             position: absolute; bottom: 5px; left: 20px; width: 30px; height: 30px;
             background: rgba(255, 255, 255, 0.7); border-radius: 50%; filter: blur(8px);
@@ -172,7 +180,7 @@
 </head>
 <body>
 
-    <div class="header-tag" id="analyzer-header">RUSH HOUR ANALYZER</div>
+    <div class="header-tag" id="analyzer-header">HOUR RUSH ANALYZER</div>
 
     <div class="lang-selector">
         <div class="lang-btn" id="current-lang" onclick="toggleLang()">🇷🇺</div>
@@ -188,7 +196,7 @@
     <div id="loading-overlay" class="loading-overlay">
         <div class="car-container">
             <div class="smoke"></div>
-            <img src="1.gif" class="car-loader-gif" loading="eager" alt="">
+            <img src="1.gif" class="car-loader-gif" alt="">
         </div>
         <div class="loader-line"></div>
         <div class="loading-text" id="scanning-text">ЗАГРУЗКА . . .</div>
@@ -238,25 +246,27 @@
             .atmosphereColor('#4b0082')
             .atmosphereDaylightAlpha(0.1);
 
-        world.controls().autoRotate = true;
-        world.controls().autoRotateSpeed = 1.2;
-        world.controls().enableZoom = false;
+        // АВТО-ВРАЩЕНИЕ ПЛАНЕТЫ
+        const controls = world.controls();
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.8; // Скорость вращения
+        controls.enableZoom = false;
 
         const dictionary = {
             ru: {
-                header: "RUSH HOUR ANALYZER", footer: "release 1.0.9",
+                header: "HOUR RUSH ANALYZER", footer: "release 1.0.9",
                 outcome: "ИСХОД:", status: "СТАТУС:", syslog: "ЛОГ:",
                 btnLoad: "ЛОГ", btnAnalyze: "АНАЛИЗ",
                 loading: "ЗАГРУЗКА . . .", logDone: "АНАЛИЗ ЗАВЕРШЕН: ", logSystem: "> Лог загружен"
             },
             en: {
-                header: "RUSH HOUR ANALYZER", footer: "release 1.0.9",
+                header: "HOUR RUSH ANALYZER", footer: "release 1.0.9",
                 outcome: "OUTCOME:", status: "STATUS:", syslog: "LOG:",
                 btnLoad: "LOG", btnAnalyze: "ANALYZE",
                 loading: "SCANNING . . .", logDone: "ANALYSIS DONE: ", logSystem: "> Log loaded"
             },
             pt: {
-                header: "RUSH HOUR ANALYZER", footer: "release 1.0.9",
+                header: "HOUR RUSH ANALYZER", footer: "release 1.0.9",
                 outcome: "RESULTADO:", status: "STATUS:", syslog: "LOG:",
                 btnLoad: "LOG", btnAnalyze: "ANALISAR",
                 loading: "DIGITALIZAÇÃO . . .", logDone: "ANÁLISE FEITA: ", logSystem: "> Log carregado"
@@ -304,11 +314,12 @@
 
         function showResult() {
             const t = dictionary[currentLang];
-            // Логика 50/50: только UNDER или OVER
-            const res = ['card-under', 'card-over'];
-            const winner = res[Math.floor(Math.random() * res.length)];
+            
+            // 100% ШАНС ВЫПАДЕНИЯ OVER
+            const winner = 'card-over';
             document.getElementById(winner).classList.add('active');
             
+            // Легкий прыжок камеры для эффекта
             const l = (Math.random()-0.5)*100, g = (Math.random()-0.5)*360;
             world.pointOfView({ lat: l, lng: g, alt: 1.8 }, 1200);
             
