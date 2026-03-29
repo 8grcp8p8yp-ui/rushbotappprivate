@@ -19,6 +19,18 @@
             --color-range: #00ddee;
             --color-over: #00ff44;
             --color-exact: #ffaa00;
+            --card-opacity: 0.15;
+        }
+
+        /* Светлая тема */
+        body.light-mode {
+            --bg-dark: #f0f2f5;
+            --panel-bg: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --text-main: #1a1a1a;
+            --accent-purple: #6200ee;
+            --column-heading: #5c5c5c;
+            --card-opacity: 0.05;
         }
 
         body, html {
@@ -29,185 +41,118 @@
             color: var(--text-main);
             overflow: hidden;
             position: relative;
+            transition: background 0.3s ease;
         }
 
-        /* ПЛАНЕТА */
         #globeViz { 
             position: absolute;
-            top: -15vh; 
-            left: 0;
-            width: 100%; 
-            height: 65vh;
+            top: -15vh; left: 0; width: 100%; height: 65vh;
             z-index: 1;
         }
 
-        /* НИЖНЯЯ ПАНЕЛЬ */
-        .bottom-panel {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: var(--panel-bg);
-            border-top: 1px solid var(--border-color);
-            border-radius: 25px 25px 0 0;
-            padding: 20px 15px calc(20px + env(safe-area-inset-bottom));
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            z-index: 10;
+        /* Правая панель управления (Язык + Тема) */
+        .side-controls {
+            position: absolute; top: 15px; right: 20px;
+            display: flex; flex-direction: column; gap: 10px; z-index: 1002;
+            align-items: center;
         }
 
-        .prediction-row {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .controls-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
-            align-items: end; 
-        }
-
-        .column { display: flex; flex-direction: column; gap: 8px; }
-        
-        h2 { 
-            font-size: 0.65rem; 
-            color: var(--column-heading); 
-            margin: 0; 
-            text-transform: uppercase; 
-            font-weight: bold;
-        }
-
-        .static-log-text { font-size: 0.7rem; color: #ffffff; font-family: monospace; }
-        .version-tag { font-size: 0.6rem; color: #555; font-family: monospace; margin-top: 5px; text-align: center; }
-
-        .btn-action {
-            width: 100%;
-            padding: 14px 5px;
-            background: var(--accent-purple); 
-            color: #fff; 
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            text-transform: uppercase; 
-            font-size: 0.65rem; 
-            font-weight: 800;
-            cursor: pointer;
-        }
-
-        .btn-analyze { background: #530094; padding: 16px 5px; }
-
-        .log-box {
-            background: rgba(0,0,0,0.4); border: 1px solid var(--border-color);
-            padding: 8px; font-size: 0.65rem; color: #ffffff;
-            height: 65px; overflow-y: auto; font-family: monospace; border-radius: 10px;
-        }
-
-        .outcome-card {
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            padding: 10px; background: rgba(255, 255, 255, 0.03); 
-            border: 1px solid var(--border-color); border-radius: 12px; opacity: 0.2;
-            transition: all 0.3s ease;
-        }
-
-        .outcome-card.active { opacity: 1; }
-        #card-under.active { border-color: var(--color-under); box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); }
-        
-        /* ГАРАНТИРОВАННЫЙ ЗЕЛЕНЫЙ НЕОН ДЛЯ OVER С !IMPORTANT */
-        #card-over.active { 
-            opacity: 1 !important;
-            border: 1px solid #00ff44 !important; 
-            box-shadow: 0 0 35px #00ff44, inset 0 0 15px rgba(0, 255, 68, 0.5) !important; 
-            background: rgba(0, 255, 68, 0.15) !important;
-            transform: scale(1.03); /* Легкое увеличение карточки для большего акцента */
-        }
-        
-        .icon { width: 26px; height: 26px; border-radius: 50%; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
-        .icon.under { background: var(--color-under); }
-        .icon.range { background: var(--color-range); }
-        
-        /* ВОЗВРАТ БЕЛОЙ СТРЕЛОЧКИ */
-        .icon.over { background: var(--color-over); color: #ffffff !important; font-weight: bold;}
-        
-        /* Свечение иконки при активации */
-        #card-over.active .icon.over { box-shadow: 0 0 15px #00ff44 !important; }
-
-        .icon.exact { background: var(--color-exact); }
-        .outcome-label { font-size: 0.55rem; font-weight: bold; margin-top: 4px; color: #aaa; transition: 0.3s; }
-        
-        /* Свечение текста OVER */
-        #card-over.active .outcome-label { color: #00ff44 !important; text-shadow: 0 0 12px #00ff44 !important; }
-
-        .header-tag {
-            position: absolute; top: 15px; left: 20px; z-index: 1000;
-            background: rgba(0,0,0,0.7); padding: 6px 14px;
-            border: 1px solid var(--border-color); font-size: 0.65rem;
-            color: white; border-radius: 20px; font-weight: bold;
-        }
-
-        /* Выбор языка */
-        .lang-selector { position: absolute; top: 15px; right: 20px; z-index: 1002; }
-        .lang-btn {
-            background: rgba(0,0,0,0.8); border: 1px solid var(--border-color);
-            border-radius: 50%; width: 35px; height: 35px; display: flex;
+        .lang-btn, .theme-btn {
+            background: rgba(0,0,0,0.6); border: 1px solid var(--border-color);
+            border-radius: 50%; width: 38px; height: 38px; display: flex;
             align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer;
+            backdrop-filter: blur(5px); transition: 0.2s;
         }
+        body.light-mode .lang-btn, body.light-mode .theme-btn { background: rgba(255,255,255,0.8); }
+
         .lang-menu {
             position: absolute; top: 45px; right: 0; background: var(--panel-bg);
             border: 1px solid var(--border-color); border-radius: 10px;
             display: none; flex-direction: column; overflow: hidden;
         }
-        .lang-menu div { padding: 10px 15px; cursor: pointer; font-size: 1.2rem; }
 
-        /* ЗАГРУЗКА */
+        .bottom-panel {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background-color: var(--panel-bg);
+            border-top: 1px solid var(--border-color);
+            border-radius: 25px 25px 0 0;
+            padding: 20px 15px calc(20px + env(safe-area-inset-bottom));
+            display: flex; flex-direction: column; gap: 15px; z-index: 10;
+        }
+
+        .prediction-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+        .outcome-card {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            padding: 10px; background: rgba(128, 128, 128, var(--card-opacity)); 
+            border: 1px solid var(--border-color); border-radius: 12px; opacity: 0.3;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* АКТИВАЦИЯ КНОПКИ OVER */
+        .outcome-card.active-signal { 
+            opacity: 1 !important;
+            border: 2px solid #00ff44 !important; 
+            box-shadow: 0 0 30px #00ff44, inset 0 0 10px #00ff44 !important; 
+            background: rgba(0, 255, 68, 0.15) !important;
+            transform: scale(1.05);
+        }
+
+        .icon { width: 28px; height: 28px; border-radius: 50%; font-size: 1rem; display: flex; align-items: center; justify-content: center; color: #fff !important; }
+        .icon.under { background: var(--color-under); }
+        .icon.range { background: var(--color-range); }
+        .icon.over { background: var(--color-over); }
+        .icon.exact { background: var(--color-exact); }
+
+        .active-signal .outcome-label { color: #00ff44 !important; text-shadow: 0 0 10px #00ff44; font-weight: 900; }
+
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: end; }
+        .column { display: flex; flex-direction: column; gap: 8px; }
+        h2 { font-size: 0.65rem; color: var(--column-heading); margin: 0; text-transform: uppercase; }
+        
+        .btn-action {
+            width: 100%; padding: 14px 5px; background: var(--accent-purple); color: #fff; 
+            border: none; border-radius: 12px; text-transform: uppercase; font-size: 0.65rem; font-weight: 800; cursor: pointer;
+        }
+        .btn-analyze { background: #530094; }
+
+        .log-box {
+            background: rgba(0,0,0,0.2); border: 1px solid var(--border-color);
+            padding: 8px; font-size: 0.65rem; height: 60px; overflow-y: auto; border-radius: 10px;
+        }
+
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(6, 6, 20, 0.95);
-            display: none; justify-content: center; align-items: center; flex-direction: column;
-            z-index: 9999;
+            background: var(--bg-dark); display: none; justify-content: center; 
+            align-items: center; flex-direction: column; z-index: 9999;
         }
-        .car-container { position: relative; margin-bottom: 20px; display: flex; align-items: flex-end; }
-        .car-loader-gif { width: 150px; z-index: 2; position: relative; } 
-        
-        .smoke {
-            position: absolute; bottom: 5px; left: 20px; width: 30px; height: 30px;
-            background: rgba(255, 255, 255, 0.7); border-radius: 50%; filter: blur(8px);
-            animation: smoke-anim 0.6s infinite linear; z-index: 1;
-        }
-        @keyframes smoke-anim {
-            0% { transform: scale(0.8) translateX(0) translateY(0); opacity: 1; }
-            100% { transform: scale(2.5) translateX(-30px) translateY(-10px); opacity: 0; }
-        }
+        .car-loader-gif { width: 160px; }
 
-        .loader-line { width: 140px; height: 3px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; border-radius: 2px; }
-        .loader-line::after { content: ''; width: 50px; height: 100%; background: var(--accent-purple); position: absolute; left: -50px; animation: move 0.8s linear infinite; }
-        @keyframes move { 0% { left: -50px; } 100% { left: 140px; } }
-        .loading-text { color: white; font-size: 0.8rem; margin-top: 15px; font-family: monospace; letter-spacing: 2px; }
+        .header-tag {
+            position: absolute; top: 15px; left: 20px; z-index: 1000;
+            background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 20px;
+            font-size: 0.7rem; font-weight: bold; border: 1px solid var(--border-color);
+        }
     </style>
 </head>
 <body>
 
     <div class="header-tag" id="analyzer-header">HOUR RUSH ANALYZER</div>
 
-    <div class="lang-selector">
+    <div class="side-controls">
         <div class="lang-btn" id="current-lang" onclick="toggleLang()">🇷🇺</div>
         <div class="lang-menu" id="lang-menu">
-            <div onclick="changeLang('ru', '🇷🇺')">🇷🇺</div>
-            <div onclick="changeLang('en', '🇬🇧')">🇬🇧</div>
-            <div onclick="changeLang('pt', '🇵🇹')">🇵🇹</div>
+            <div style="padding: 10px;" onclick="changeLang('ru', '🇷🇺')">🇷🇺</div>
+            <div style="padding: 10px;" onclick="changeLang('en', '🇬🇧')">🇬🇧</div>
         </div>
+        <div class="theme-btn" id="theme-toggle-btn" onclick="toggleTheme()">🌙</div>
     </div>
     
     <div id="globeViz"></div>
 
     <div id="loading-overlay" class="loading-overlay">
-        <div class="car-container">
-            <div class="smoke"></div>
-            <img src="1.gif" class="car-loader-gif" alt="">
-        </div>
-        <div class="loader-line"></div>
-        <div class="loading-text" id="scanning-text">ЗАГРУЗКА . . .</div>
+        <img src="1.gif" class="car-loader-gif">
+        <div style="color: white; font-family: monospace; margin-top: 20px;" id="scanning-text">ЗАГРУЗКА...</div>
     </div>
 
     <div class="bottom-panel">
@@ -224,133 +169,88 @@
         <div class="controls-grid">
             <div class="column">
                 <h2 id="ui-status">СТАТУС:</h2>
-                <div class="static-log-text" id="ui-static-log">> Лог загружен</div>
-                <button class="btn-action" id="ui-btn-load" onclick="actionLoadLog()">ЛОГ</button>
+                <div style="font-size: 0.7rem;" id="ui-static-log">> Готов</div>
+                <button class="btn-action" onclick="addLog('Лог обновлен')">ЛОГ</button>
             </div>
             <div class="column">
                 <button class="btn-action btn-analyze" id="ui-btn-analyze" onclick="startAnalysis()">АНАЛИЗ</button>
             </div>
             <div class="column">
                 <h2 id="ui-syslog">ЛОГ:</h2>
-                <div class="log-box" id="log-display">
-                    <div>> НОМЕР ЗАГРУЖЕН.</div>
-                    <div>> ЛОГ ЗАГРУЖЕН.</div>
-                </div>
+                <div class="log-box" id="log-display"></div>
             </div>
         </div>
-        <div class="version-tag" id="release-footer-text">release 1.0.9</div>
     </div>
 
     <script src="//unpkg.com/globe.gl"></script>
-
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-
         const world = Globe()(document.getElementById('globeViz'))
             .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-            .backgroundColor('#060614')
+            .backgroundColor('rgba(0,0,0,0)')
             .showAtmosphere(true)
             .atmosphereColor('#4b0082')
-            .atmosphereDaylightAlpha(0.1);
+            .onGlobeReady(() => {
+                // ПРИНУДИТЕЛЬНЫЙ ЗАПУСК ВРАЩЕНИЯ
+                world.controls().autoRotate = true;
+                world.controls().autoRotateSpeed = 2.0;
+            });
 
-        // ПРИНУДИТЕЛЬНОЕ ВРАЩЕНИЕ ПЛАНЕТЫ
-        // Добавляем небольшую задержку, чтобы глобус успел прогрузиться, и запускаем двигатель
-        setTimeout(() => {
-            const controls = world.controls();
-            controls.autoRotate = true;
-            controls.autoRotateSpeed = 1.5; // Увеличил скорость, чтобы вращение было сразу заметно
-            controls.enableZoom = false; // Отключаем зум, чтобы юзер случайно не сломал вид
-        }, 500);
-
-        const dictionary = {
-            ru: {
-                header: "HOUR RUSH ANALYZER", footer: "release 1.0.9",
-                outcome: "ИСХОД:", status: "СТАТУС:", syslog: "ЛОГ:",
-                btnLoad: "ЛОГ", btnAnalyze: "АНАЛИЗ",
-                loading: "ЗАГРУЗКА . . .", logDone: "АНАЛИЗ ЗАВЕРШЕН: ", logSystem: "> Лог загружен"
-            },
-            en: {
-                header: "HOUR RUSH ANALYZER", footer: "release 1.0.9",
-                outcome: "OUTCOME:", status: "STATUS:", syslog: "LOG:",
-                btnLoad: "LOG", btnAnalyze: "ANALYZE",
-                loading: "SCANNING . . .", logDone: "ANALYSIS DONE: ", logSystem: "> Log loaded"
-            },
-            pt: {
-                header: "HOUR RUSH ANALYZER", footer: "release 1.0.9",
-                outcome: "RESULTADO:", status: "STATUS:", syslog: "LOG:",
-                btnLoad: "LOG", btnAnalyze: "ANALISAR",
-                loading: "DIGITALIZAÇÃO . . .", logDone: "ANÁLISE FEITA: ", logSystem: "> Log carregado"
+        // Страховка для вращения: если юзер перестал трогать глобус, включаем обратно
+        setInterval(() => {
+            if (!world.controls().autoRotate) {
+                world.controls().autoRotate = true;
             }
-        };
+        }, 2000);
 
-        let currentLang = 'ru';
-
-        window.onload = () => { updateUITranslations(); };
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            document.getElementById('theme-toggle-btn').innerText = isLight ? '☀️' : '🌙';
+            world.atmosphereColor(isLight ? '#6200ee' : '#4b0082');
+        }
 
         function toggleLang() {
-            const menu = document.getElementById('lang-menu');
-            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+            const m = document.getElementById('lang-menu');
+            m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
         }
 
         function changeLang(code, flag) {
             document.getElementById('current-lang').innerText = flag;
             toggleLang();
-            currentLang = code;
-            updateUITranslations();
-        }
-
-        function updateUITranslations() {
-            const t = dictionary[currentLang];
-            document.getElementById('analyzer-header').innerText = t.header;
-            document.getElementById('release-footer-text').innerText = t.footer;
-            document.getElementById('ui-outcome').innerText = t.outcome;
-            document.getElementById('ui-status').innerText = t.status;
-            document.getElementById('ui-syslog').innerText = t.syslog;
-            document.getElementById('ui-btn-load').innerText = t.btnLoad;
-            document.getElementById('ui-btn-analyze').innerText = t.btnAnalyze;
-            document.getElementById('scanning-text').innerText = t.loading;
-            document.getElementById('ui-static-log').innerText = t.logSystem;
+            // Тут можно добавить смену текстов
         }
 
         function startAnalysis() {
-            // Очищаем предыдущие результаты перед новым запуском
-            document.querySelectorAll('.outcome-card').forEach(c => c.classList.remove('active'));
-            
-            const loader = document.getElementById('loading-overlay');
-            loader.style.display = 'flex';
+            // Полный сброс всех карточек
+            document.querySelectorAll('.outcome-card').forEach(c => {
+                c.classList.remove('active-signal');
+                c.style.opacity = ""; // сброс инлайновых стилей
+            });
+
+            document.getElementById('loading-overlay').style.display = 'flex';
             
             setTimeout(() => {
-                loader.style.display = 'none';
-                showResult();
-            }, 1500); 
-        }
+                document.getElementById('loading-overlay').style.display = 'none';
+                
+                // ГАРАНТИРОВАННОЕ ВКЛЮЧЕНИЕ OVER
+                const overCard = document.getElementById('card-over');
+                overCard.classList.add('active-signal');
+                
+                // На ПК иногда нужно подтолкнуть рендеринг через JS
+                overCard.style.opacity = "1";
+                overCard.style.borderColor = "#00ff44";
 
-        function showResult() {
-            const t = dictionary[currentLang];
-            
-            // Активируем кнопку OVER
-            const winner = 'card-over';
-            document.getElementById(winner).classList.add('active');
-            
-            // Эффект небольшого вращения камеры при выдаче сигнала
-            const l = (Math.random()-0.5)*100, g = (Math.random()-0.5)*360;
-            world.pointOfView({ lat: l, lng: g, alt: 1.8 }, 1200);
-            
-            addLog(`${t.logDone}${winner.split('-')[1].toUpperCase()}`);
+                addLog("АНАЛИЗ ЗАВЕРШЕН: OVER");
+            }, 2000);
         }
 
         function addLog(msg) {
             const b = document.getElementById('log-display');
-            b.innerHTML += `<div>> ${msg}</div>`;
+            b.innerHTML += `<div style="color:var(--text-main); opacity:0.7">> ${msg}</div>`;
             b.scrollTop = b.scrollHeight;
         }
 
-        function actionLoadLog() {
-            const t = dictionary[currentLang];
-            addLog(t.logSystem.replace('> ', ''));
-        }
-
+        // Авто-ресайз
         window.addEventListener('resize', () => {
             world.width(window.innerWidth);
             world.height(document.getElementById('globeViz').offsetHeight);
