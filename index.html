@@ -22,7 +22,6 @@
             --card-opacity: 0.15;
         }
 
-        /* Светлая тема */
         body.light-mode {
             --bg-dark: #f0f2f5;
             --panel-bg: #ffffff;
@@ -41,34 +40,28 @@
             color: var(--text-main);
             overflow: hidden;
             position: relative;
-            transition: background 0.3s ease;
         }
 
+        /* ЦЕНТРИРОВАНИЕ ПЛАНЕТЫ */
         #globeViz { 
             position: absolute;
-            top: -15vh; left: 0; width: 100%; height: 65vh;
+            top: 0; /* Сместил вниз с -15vh */
+            left: 0; 
+            width: 100%; 
+            height: 60vh; /* Оптимальная высота для центра */
             z-index: 1;
         }
 
-        /* Правая панель управления (Язык + Тема) */
         .side-controls {
             position: absolute; top: 15px; right: 20px;
             display: flex; flex-direction: column; gap: 10px; z-index: 1002;
-            align-items: center;
         }
 
         .lang-btn, .theme-btn {
             background: rgba(0,0,0,0.6); border: 1px solid var(--border-color);
-            border-radius: 50%; width: 38px; height: 38px; display: flex;
-            align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer;
-            backdrop-filter: blur(5px); transition: 0.2s;
-        }
-        body.light-mode .lang-btn, body.light-mode .theme-btn { background: rgba(255,255,255,0.8); }
-
-        .lang-menu {
-            position: absolute; top: 45px; right: 0; background: var(--panel-bg);
-            border: 1px solid var(--border-color); border-radius: 10px;
-            display: none; flex-direction: column; overflow: hidden;
+            border-radius: 50%; width: 36px; height: 36px; display: flex;
+            align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer;
+            backdrop-filter: blur(5px);
         }
 
         .bottom-panel {
@@ -76,62 +69,68 @@
             background-color: var(--panel-bg);
             border-top: 1px solid var(--border-color);
             border-radius: 25px 25px 0 0;
-            padding: 20px 15px calc(20px + env(safe-area-inset-bottom));
-            display: flex; flex-direction: column; gap: 15px; z-index: 10;
+            padding: 15px 15px calc(15px + env(safe-area-inset-bottom));
+            display: flex; flex-direction: column; gap: 12px; z-index: 10;
         }
 
-        .prediction-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .prediction-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 
         .outcome-card {
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            padding: 10px; background: rgba(128, 128, 128, var(--card-opacity)); 
+            padding: 8px; background: rgba(128, 128, 128, var(--card-opacity)); 
             border: 1px solid var(--border-color); border-radius: 12px; opacity: 0.3;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.3s ease;
         }
 
-        /* АКТИВАЦИЯ КНОПКИ OVER */
+        /* МЯГКОЕ СВЕЧЕНИЕ */
         .outcome-card.active-signal { 
             opacity: 1 !important;
-            border: 2px solid #00ff44 !important; 
-            box-shadow: 0 0 30px #00ff44, inset 0 0 10px #00ff44 !important; 
-            background: rgba(0, 255, 68, 0.15) !important;
-            transform: scale(1.05);
+            border: 1px solid #00ff44 !important; 
+            box-shadow: 0 0 15px rgba(0, 255, 68, 0.4); /* Сделал свечение слабее */
+            background: rgba(0, 255, 68, 0.1) !important;
+            transform: scale(1.02);
         }
 
-        .icon { width: 28px; height: 28px; border-radius: 50%; font-size: 1rem; display: flex; align-items: center; justify-content: center; color: #fff !important; }
+        .icon { width: 24px; height: 24px; border-radius: 50%; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; color: #fff !important; }
         .icon.under { background: var(--color-under); }
         .icon.range { background: var(--color-range); }
         .icon.over { background: var(--color-over); }
         .icon.exact { background: var(--color-exact); }
 
-        .active-signal .outcome-label { color: #00ff44 !important; text-shadow: 0 0 10px #00ff44; font-weight: 900; }
+        .outcome-label { font-size: 0.6rem; font-weight: bold; margin-top: 4px; color: #aaa; }
+        .active-signal .outcome-label { color: #00ff44 !important; }
 
-        .controls-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; align-items: end; }
-        .column { display: flex; flex-direction: column; gap: 8px; }
-        h2 { font-size: 0.65rem; color: var(--column-heading); margin: 0; text-transform: uppercase; }
+        .controls-grid { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 10px; align-items: end; }
+        .column { display: flex; flex-direction: column; gap: 5px; }
+        
+        /* Возвращаем компактный размер заголовков */
+        h2 { font-size: 0.65rem; color: var(--column-heading); margin: 0; text-transform: uppercase; font-weight: 800; }
         
         .btn-action {
-            width: 100%; padding: 14px 5px; background: var(--accent-purple); color: #fff; 
-            border: none; border-radius: 12px; text-transform: uppercase; font-size: 0.65rem; font-weight: 800; cursor: pointer;
+            width: 100%; padding: 12px 5px; background: var(--accent-purple); color: #fff; 
+            border: none; border-radius: 10px; text-transform: uppercase; font-size: 0.65rem; font-weight: 800; cursor: pointer;
         }
-        .btn-analyze { background: #530094; }
+        .btn-analyze { background: #530094; padding: 15px 5px; }
 
         .log-box {
-            background: rgba(0,0,0,0.2); border: 1px solid var(--border-color);
-            padding: 8px; font-size: 0.65rem; height: 60px; overflow-y: auto; border-radius: 10px;
+            background: rgba(0,0,0,0.3); border: 1px solid var(--border-color);
+            padding: 6px; font-size: 0.6rem; height: 55px; overflow-y: auto; border-radius: 8px; font-family: monospace;
         }
 
+        /* ЗАГРУЗКА БЕЗ МАШИНКИ */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-dark); display: none; justify-content: center; 
             align-items: center; flex-direction: column; z-index: 9999;
         }
-        .car-loader-gif { width: 160px; }
+        .loader-bar { width: 120px; height: 2px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; }
+        .loader-bar::after { content: ''; position: absolute; left: -100%; width: 100%; height: 100%; background: var(--color-over); animation: loading 1.5s infinite; }
+        @keyframes loading { 100% { left: 100%; } }
 
         .header-tag {
             position: absolute; top: 15px; left: 20px; z-index: 1000;
-            background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 20px;
-            font-size: 0.7rem; font-weight: bold; border: 1px solid var(--border-color);
+            background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 20px;
+            font-size: 0.65rem; font-weight: bold; border: 1px solid var(--border-color);
         }
     </style>
 </head>
@@ -141,18 +140,14 @@
 
     <div class="side-controls">
         <div class="lang-btn" id="current-lang" onclick="toggleLang()">🇷🇺</div>
-        <div class="lang-menu" id="lang-menu">
-            <div style="padding: 10px;" onclick="changeLang('ru', '🇷🇺')">🇷🇺</div>
-            <div style="padding: 10px;" onclick="changeLang('en', '🇬🇧')">🇬🇧</div>
-        </div>
-        <div class="theme-btn" id="theme-toggle-btn" onclick="toggleTheme()">🌙</div>
+        <div class="theme-btn" onclick="toggleTheme()">🌙</div>
     </div>
     
     <div id="globeViz"></div>
 
     <div id="loading-overlay" class="loading-overlay">
-        <img src="1.gif" class="car-loader-gif">
-        <div style="color: white; font-family: monospace; margin-top: 20px;" id="scanning-text">ЗАГРУЗКА...</div>
+        <div class="loader-bar"></div>
+        <div style="color: white; font-family: monospace; margin-top: 15px; font-size: 0.7rem; letter-spacing: 2px;" id="scanning-text">АНАЛИЗ ДАННЫХ...</div>
     </div>
 
     <div class="bottom-panel">
@@ -169,15 +164,18 @@
         <div class="controls-grid">
             <div class="column">
                 <h2 id="ui-status">СТАТУС:</h2>
-                <div style="font-size: 0.7rem;" id="ui-static-log">> Готов</div>
-                <button class="btn-action" onclick="addLog('Лог обновлен')">ЛОГ</button>
+                <div style="font-size: 0.6rem; color: #fff;" id="ui-static-log">> Готов</div>
+                <button class="btn-action" onclick="addLog('ЛОГ ЗАГРУЖЕН')">ЛОГ</button>
             </div>
             <div class="column">
                 <button class="btn-action btn-analyze" id="ui-btn-analyze" onclick="startAnalysis()">АНАЛИЗ</button>
             </div>
             <div class="column">
                 <h2 id="ui-syslog">ЛОГ:</h2>
-                <div class="log-box" id="log-display"></div>
+                <div class="log-box" id="log-display">
+                    <div>> НОМЕР ЗАГРУЖЕН.</div>
+                    <div>> ЛОГ ЗАГРУЖЕН.</div>
+                </div>
             </div>
         </div>
     </div>
@@ -190,67 +188,38 @@
             .showAtmosphere(true)
             .atmosphereColor('#4b0082')
             .onGlobeReady(() => {
-                // ПРИНУДИТЕЛЬНЫЙ ЗАПУСК ВРАЩЕНИЯ
                 world.controls().autoRotate = true;
-                world.controls().autoRotateSpeed = 2.0;
+                world.controls().autoRotateSpeed = 1.8;
+                // Центрируем камеру
+                world.pointOfView({ lat: 20, lng: 0, alt: 2.2 });
             });
 
-        // Страховка для вращения: если юзер перестал трогать глобус, включаем обратно
         setInterval(() => {
-            if (!world.controls().autoRotate) {
-                world.controls().autoRotate = true;
-            }
+            if (!world.controls().autoRotate) world.controls().autoRotate = true;
         }, 2000);
 
         function toggleTheme() {
             document.body.classList.toggle('light-mode');
-            const isLight = document.body.classList.contains('light-mode');
-            document.getElementById('theme-toggle-btn').innerText = isLight ? '☀️' : '🌙';
-            world.atmosphereColor(isLight ? '#6200ee' : '#4b0082');
-        }
-
-        function toggleLang() {
-            const m = document.getElementById('lang-menu');
-            m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
-        }
-
-        function changeLang(code, flag) {
-            document.getElementById('current-lang').innerText = flag;
-            toggleLang();
-            // Тут можно добавить смену текстов
         }
 
         function startAnalysis() {
-            // Полный сброс всех карточек
-            document.querySelectorAll('.outcome-card').forEach(c => {
-                c.classList.remove('active-signal');
-                c.style.opacity = ""; // сброс инлайновых стилей
-            });
-
+            document.querySelectorAll('.outcome-card').forEach(c => c.classList.remove('active-signal'));
             document.getElementById('loading-overlay').style.display = 'flex';
             
             setTimeout(() => {
                 document.getElementById('loading-overlay').style.display = 'none';
-                
-                // ГАРАНТИРОВАННОЕ ВКЛЮЧЕНИЕ OVER
                 const overCard = document.getElementById('card-over');
                 overCard.classList.add('active-signal');
-                
-                // На ПК иногда нужно подтолкнуть рендеринг через JS
-                overCard.style.opacity = "1";
-                overCard.style.borderColor = "#00ff44";
-
                 addLog("АНАЛИЗ ЗАВЕРШЕН: OVER");
-            }, 2000);
+            }, 1500);
         }
 
         function addLog(msg) {
             const b = document.getElementById('log-display');
-            b.innerHTML += `<div style="color:var(--text-main); opacity:0.7">> ${msg}</div>`;
+            b.innerHTML += `<div>> ${msg}</div>`;
             b.scrollTop = b.scrollHeight;
         }
 
-        // Авто-ресайз
         window.addEventListener('resize', () => {
             world.width(window.innerWidth);
             world.height(document.getElementById('globeViz').offsetHeight);
