@@ -108,26 +108,36 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             padding: 10px; background: rgba(255, 255, 255, 0.03); 
             border: 1px solid var(--border-color); border-radius: 12px; opacity: 0.2;
-            transition: 0.3s;
+            transition: all 0.3s ease;
         }
 
         .outcome-card.active { opacity: 1; }
         #card-under.active { border-color: var(--color-under); box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); }
         
-        /* УСИЛЕННЫЙ ЗЕЛЕНЫЙ НЕОН ДЛЯ OVER */
+        /* ГАРАНТИРОВАННЫЙ ЗЕЛЕНЫЙ НЕОН ДЛЯ OVER С !IMPORTANT */
         #card-over.active { 
-            border-color: var(--color-over); 
-            box-shadow: 0 0 25px #00ff44, 0 0 10px rgba(0, 255, 68, 0.8) inset; 
-            background: rgba(0, 255, 68, 0.1);
+            opacity: 1 !important;
+            border: 1px solid #00ff44 !important; 
+            box-shadow: 0 0 35px #00ff44, inset 0 0 15px rgba(0, 255, 68, 0.5) !important; 
+            background: rgba(0, 255, 68, 0.15) !important;
+            transform: scale(1.03); /* Легкое увеличение карточки для большего акцента */
         }
         
         .icon { width: 26px; height: 26px; border-radius: 50%; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
         .icon.under { background: var(--color-under); }
         .icon.range { background: var(--color-range); }
-        .icon.over { background: var(--color-over); color: #000; font-weight: bold;}
+        
+        /* ВОЗВРАТ БЕЛОЙ СТРЕЛОЧКИ */
+        .icon.over { background: var(--color-over); color: #ffffff !important; font-weight: bold;}
+        
+        /* Свечение иконки при активации */
+        #card-over.active .icon.over { box-shadow: 0 0 15px #00ff44 !important; }
+
         .icon.exact { background: var(--color-exact); }
-        .outcome-label { font-size: 0.55rem; font-weight: bold; margin-top: 4px; color: #aaa; }
-        #card-over.active .outcome-label { color: #00ff44; text-shadow: 0 0 5px #00ff44; }
+        .outcome-label { font-size: 0.55rem; font-weight: bold; margin-top: 4px; color: #aaa; transition: 0.3s; }
+        
+        /* Свечение текста OVER */
+        #card-over.active .outcome-label { color: #00ff44 !important; text-shadow: 0 0 12px #00ff44 !important; }
 
         .header-tag {
             position: absolute; top: 15px; left: 20px; z-index: 1000;
@@ -158,8 +168,6 @@
             z-index: 9999;
         }
         .car-container { position: relative; margin-bottom: 20px; display: flex; align-items: flex-end; }
-        
-        /* УБРАЛ ФИЛЬТРЫ, ЧТОБЫ МАШИНКА БЫЛА ВИДНА */
         .car-loader-gif { width: 150px; z-index: 2; position: relative; } 
         
         .smoke {
@@ -246,11 +254,14 @@
             .atmosphereColor('#4b0082')
             .atmosphereDaylightAlpha(0.1);
 
-        // АВТО-ВРАЩЕНИЕ ПЛАНЕТЫ
-        const controls = world.controls();
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.8; // Скорость вращения
-        controls.enableZoom = false;
+        // ПРИНУДИТЕЛЬНОЕ ВРАЩЕНИЕ ПЛАНЕТЫ
+        // Добавляем небольшую задержку, чтобы глобус успел прогрузиться, и запускаем двигатель
+        setTimeout(() => {
+            const controls = world.controls();
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.5; // Увеличил скорость, чтобы вращение было сразу заметно
+            controls.enableZoom = false; // Отключаем зум, чтобы юзер случайно не сломал вид
+        }, 500);
 
         const dictionary = {
             ru: {
@@ -303,9 +314,12 @@
         }
 
         function startAnalysis() {
+            // Очищаем предыдущие результаты перед новым запуском
             document.querySelectorAll('.outcome-card').forEach(c => c.classList.remove('active'));
+            
             const loader = document.getElementById('loading-overlay');
             loader.style.display = 'flex';
+            
             setTimeout(() => {
                 loader.style.display = 'none';
                 showResult();
@@ -315,11 +329,11 @@
         function showResult() {
             const t = dictionary[currentLang];
             
-            // 100% ШАНС ВЫПАДЕНИЯ OVER
+            // Активируем кнопку OVER
             const winner = 'card-over';
             document.getElementById(winner).classList.add('active');
             
-            // Легкий прыжок камеры для эффекта
+            // Эффект небольшого вращения камеры при выдаче сигнала
             const l = (Math.random()-0.5)*100, g = (Math.random()-0.5)*360;
             world.pointOfView({ lat: l, lng: g, alt: 1.8 }, 1200);
             
